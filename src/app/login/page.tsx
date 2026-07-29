@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 import { currentOperator, supabase } from '@/lib/auth';
 
-export const metadata = { title: 'Sign in · MANIFEST' };
+// The root layout's template appends "· MANIFEST"; repeating it here produced
+// "Sign in · MANIFEST · MANIFEST".
+export const metadata = { title: 'Sign in' };
 
 type Props = { searchParams: Promise<{ next?: string; sent?: string; error?: string }> };
 

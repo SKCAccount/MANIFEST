@@ -2,7 +2,7 @@
   "name": "manifest",
   "version": "0.1.0",
   "private": true,
-  "description": "MANIFEST — a personal relationship system for the principal of Sea King Capital LLC.",
+  "description": "MANIFEST \u2014 a personal relationship system for the principal of Sea King Capital LLC.",
   "type": "module",
   "engines": {
     "node": ">=20.11"
@@ -15,6 +15,11 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "doctor": "tsx --env-file-if-exists=.env.local scripts/doctor.ts",
+    "bootstrap:owner": "tsx --env-file-if-exists=.env.local scripts/bootstrap-owner.ts",
+    "fixtures:load": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts load",
+    "fixtures:clear": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts clear",
+    "db:push": "supabase db push",
     "db:verify": "tsx scripts/verify-migrations.ts",
     "db:types": "supabase gen types typescript --local > src/lib/db/database.types.ts",
     "ci": "npm run typecheck && npm run db:verify && npm run test"

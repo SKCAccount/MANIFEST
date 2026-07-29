@@ -23,12 +23,12 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 
 ```bash
 npm install
-cp .env.example .env.local     # fill in Supabase URL + keys
-npm run ci                     # typecheck + migration verification + tests
-npm run dev
+npm run ci        # typecheck + migration verification + tests — needs no database
 ```
 
-`npm run db:verify` applies every migration to an empty Postgres, loads the fixtures, and selects from every view.
+`npm run ci` runs entirely locally: it applies every migration to an in-process Postgres, loads the fixtures, and selects from every view. No Supabase project and no Docker required.
+
+**To actually run the app**, see [SETUP.md](SETUP.md) — nine steps, about fifteen minutes. `npm run doctor` checks your progress at any point and names whatever is missing.
 
 ---
 
