@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# Secrets. Nothing resembling a key belongs in this repository.
+.env
+.env.local
+.env*.local
+.env.production
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Test and build artifacts
+coverage/
+*.tsbuildinfo
+.vercel
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Full-database CSV exports. These contain private notes about real people and
+# must never be committed.
+exports/
+*.export.csv

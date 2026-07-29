@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · migrations · tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Applies every migration to an empty Postgres (PGlite — real Postgres,
+      # no Docker daemon needed), loads the fixtures, then selects from every
+      # view. This is what proves "migrations run clean from empty".
+      - name: Verify migrations
+        run: npm run db:verify
+
+      - name: Tests
+        run: npm test
+
+  sql-hygiene:
+    name: migration hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Migrations are numbered and immutable once merged. Editing an applied
+      # migration means production and a fresh database no longer agree.
+      - name: Reject edits to previously merged migrations
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}"...HEAD -- supabase/migrations || true)
+          if [ -n "$changed" ]; then
+            echo "::error::These migrations were modified or deleted after being merged:"
+            echo "$changed"
+            echo "Add a new numbered migration instead."
+            exit 1
+          fi
+
+      - name: Reject duplicate migration ordinals
+        run: |
+          dupes=$(ls supabase/migrations/*.sql | xargs -n1 basename | cut -c1-4 | sort | uniq -d)
+          if [ -n "$dupes" ]; then
+            echo "::error::Duplicate migration ordinals: $dupes"
+            exit 1
+          fi
+
+      # Schema changes belong in numbered SQL under supabase/migrations, never
+      # in the dashboard. This catches the other common leak: a stray .sql file
+      # somewhere else that someone runs by hand.
+      - name: Reject SQL outside supabase/
+        run: |
+          stray=$(find . -name '*.sql' -not -path './supabase/*' -not -path './node_modules/*' -not -path './tests/helpers/*' || true)
+          if [ -n "$stray" ]; then
+            echo "::error::SQL found outside supabase/: $stray"
+            exit 1
+          fi
