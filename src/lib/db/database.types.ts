@@ -28,7 +28,7 @@ import type {
   TouchDirection,
   TouchSource,
   WatchPriority,
-} from './enums.js';
+} from './enums';
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -664,11 +664,30 @@ export type DataQualityRow = {
 // The Database shape supabase-js is generic over
 // ---------------------------------------------------------------------------
 
-type Table<Row, Required extends keyof Row> = {
+/**
+ * Foreign keys the app actually joins through. supabase-js resolves embedded
+ * selects (`organization:organizations(name)`) against this list, so a join
+ * that is not declared here fails to type — which is the intended behaviour:
+ * it makes an undeclared join a compile error rather than a runtime surprise.
+ */
+type Rel<
+  Name extends string,
+  Column extends string,
+  Referenced extends string,
+  OneToOne extends boolean = false,
+> = {
+  foreignKeyName: Name;
+  columns: [Column];
+  isOneToOne: OneToOne;
+  referencedRelation: Referenced;
+  referencedColumns: ['id'];
+};
+
+type Table<Row, Required extends keyof Row, Relationships extends readonly unknown[] = []> = {
   Row: Row;
   Insert: Insertable<Row, Extract<Generated, keyof Row>, Required>;
   Update: Partial<Row>;
-  Relationships: [];
+  Relationships: Relationships;
 };
 
 type View<Row> = { Row: Row; Relationships: [] };
@@ -676,15 +695,42 @@ type View<Row> = { Row: Row; Relationships: [] };
 export type Database = {
   public: {
     Tables: {
-      people: Table<PeopleRow, 'first_name'>;
+      people: Table<
+        PeopleRow,
+        'first_name',
+        [
+          Rel<'people_organization_id_fkey', 'organization_id', 'organizations'>,
+          Rel<'people_met_at_source_id_fkey', 'met_at_source_id', 'sources'>,
+          Rel<'people_introduced_by_person_id_fkey', 'introduced_by_person_id', 'people'>,
+        ]
+      >;
       organizations: Table<OrganizationsRow, 'name'>;
       sources: Table<SourcesRow, 'event_name' | 'kind'>;
-      touchpoints: Table<TouchpointsRow, 'person_id' | 'channel' | 'direction'>;
-      notes: Table<NotesRow, 'person_id' | 'body'>;
-      followups: Table<FollowupsRow, 'person_id' | 'title' | 'due_on'>;
+      touchpoints: Table<
+        TouchpointsRow,
+        'person_id' | 'channel' | 'direction',
+        [
+          Rel<'touchpoints_person_id_fkey', 'person_id', 'people'>,
+          Rel<'touchpoints_source_id_fkey', 'source_id', 'sources'>,
+        ]
+      >;
+      notes: Table<NotesRow, 'person_id' | 'body', [Rel<'notes_person_id_fkey', 'person_id', 'people'>]>;
+      followups: Table<
+        FollowupsRow,
+        'person_id' | 'title' | 'due_on',
+        [Rel<'followups_person_id_fkey', 'person_id', 'people'>]
+      >;
       tier_history: Table<TierHistoryRow, 'person_id' | 'to_tier'>;
       affiliation_history: Table<AffiliationHistoryRow, 'person_id'>;
-      introductions: Table<IntroductionsRow, 'perspective'>;
+      introductions: Table<
+        IntroductionsRow,
+        'perspective',
+        [
+          Rel<'introductions_introducer_person_id_fkey', 'introducer_person_id', 'people'>,
+          Rel<'introductions_party_a_person_id_fkey', 'party_a_person_id', 'people'>,
+          Rel<'introductions_party_b_person_id_fkey', 'party_b_person_id', 'people'>,
+        ]
+      >;
       favors: Table<FavorsRow, 'person_id' | 'direction'>;
       deals: Table<DealsRow, 'name'>;
       content_touches: Table<ContentTouchesRow, 'person_id' | 'content_title'>;
@@ -725,6 +771,23 @@ export type Database = {
         Returns: SourceMetricsRow[];
       };
       fn_path_to: { Args: { p_target_person_id: string }; Returns: PathToRow[] };
+      /** Writes an active person and its establishing touchpoint atomically. */
+      fn_create_active_person: {
+        Args: { p_person: Json; p_touchpoint: Json };
+        Returns: string;
+      };
+      /** One meeting touchpoint per attendee, sharing a group_key. */
+      fn_log_bulk_event: {
+        Args: {
+          p_source_id: string;
+          p_person_ids: string[];
+          p_occurred_at?: string;
+          p_substantive?: boolean;
+          p_summary?: string | null;
+          p_set_met_at?: boolean;
+        };
+        Returns: Array<{ person_id: string; promoted: boolean; met_at_set: boolean }>;
+      };
       fn_normalize_phone: { Args: { raw: string; default_cc?: string }; Returns: string | null };
       fn_normalize_linkedin: { Args: { raw: string }; Returns: string | null };
       fn_is_owner: { Args: Record<string, never>; Returns: boolean };

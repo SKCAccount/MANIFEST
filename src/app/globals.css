@@ -1,0 +1,131 @@
+@import 'tailwindcss';
+
+/*
+ * MANIFEST — a reading surface, not a dashboard.
+ *
+ * The success test is "on a phone, in under ten seconds, who is overdue and
+ * what do I say to them." Everything here serves legibility at arm's length:
+ * generous line height, high contrast, no decorative chrome competing with the
+ * one sentence that matters on each row.
+ */
+
+@theme {
+  --color-ink: oklch(0.21 0.012 260);
+  --color-ink-soft: oklch(0.44 0.014 260);
+  --color-ink-faint: oklch(0.62 0.012 260);
+  --color-paper: oklch(0.99 0.003 260);
+  --color-surface: oklch(1 0 0);
+  --color-line: oklch(0.91 0.006 260);
+  --color-line-soft: oklch(0.95 0.004 260);
+
+  --color-accent: oklch(0.48 0.13 250);
+  --color-accent-soft: oklch(0.95 0.03 250);
+
+  /* Tier colours. A is not "good" and D is not "bad" — they are cadences. */
+  --color-tier-a: oklch(0.52 0.15 28);
+  --color-tier-b: oklch(0.55 0.12 70);
+  --color-tier-c: oklch(0.52 0.04 260);
+  --color-tier-d: oklch(0.68 0.01 260);
+
+  --color-overdue: oklch(0.53 0.16 28);
+  --color-ok: oklch(0.52 0.11 155);
+  --color-warn: oklch(0.58 0.13 75);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-ink: oklch(0.94 0.006 260);
+    --color-ink-soft: oklch(0.74 0.012 260);
+    --color-ink-faint: oklch(0.56 0.012 260);
+    --color-paper: oklch(0.19 0.008 260);
+    --color-surface: oklch(0.23 0.009 260);
+    --color-line: oklch(0.32 0.01 260);
+    --color-line-soft: oklch(0.27 0.009 260);
+
+    --color-accent: oklch(0.74 0.12 250);
+    --color-accent-soft: oklch(0.29 0.05 250);
+
+    --color-tier-a: oklch(0.72 0.15 28);
+    --color-tier-b: oklch(0.76 0.12 75);
+    --color-tier-c: oklch(0.72 0.03 260);
+    --color-tier-d: oklch(0.55 0.01 260);
+
+    --color-overdue: oklch(0.73 0.15 28);
+    --color-ok: oklch(0.72 0.11 155);
+    --color-warn: oklch(0.78 0.12 75);
+  }
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Room for the mobile capture button and the iOS home indicator. */
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior-y: none;
+}
+
+/* Inputs inherit the type stack; 16px minimum stops iOS zooming on focus. */
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility field {
+  @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-ink
+         placeholder:text-ink-faint focus:border-accent focus:outline-none;
+}
+
+@utility label {
+  @apply mb-1 block text-xs font-medium tracking-wide text-ink-soft uppercase;
+}
+
+@utility card {
+  @apply rounded-lg border border-line bg-surface;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-line
+         bg-surface px-3 py-2 text-sm font-medium text-ink transition-colors
+         hover:border-ink-faint disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-accent
+         bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity
+         hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+}

@@ -8,19 +8,24 @@ Almost every record is a real person the operator has actually spoken to. The sy
 
 ## Status
 
-**Phase 0 (Foundation) is complete and verified.** Phases 1–4 are not started.
+**Phase 0 (Foundation) and Phase 1 (The rolodex) are complete and verified.** Phases 2–4 are not started.
+
+Phase 1 is a shippable product on its own: fully usable by hand, with zero integrations.
 
 | | |
 |---|---|
-| Migrations | 18, applying clean from empty |
+| Migrations | 19, applying clean from empty |
 | Tables | 18, plus `app_owners` for RLS |
-| Views / functions | 19 views, 14 functions |
+| Views / functions | 19 views, 16 functions |
+| Screens | 12 routes — queue, person, directory, watchlist, geography, rolodex, sources |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
-| Tests | 173 passing |
+| Tests | 234 passing |
 
 ```bash
 npm install
-npm run ci        # typecheck + migration verification + tests
+cp .env.example .env.local     # fill in Supabase URL + keys
+npm run ci                     # typecheck + migration verification + tests
+npm run dev
 ```
 
 `npm run db:verify` applies every migration to an empty Postgres, loads the fixtures, and selects from every view.
@@ -33,7 +38,7 @@ The Phase 0 acceptance criteria are almost entirely database-level assertions �
 
 Two things hosted Supabase provides that PGlite does not are created by `tests/helpers/prelude.sql`: the `auth` schema with `auth.uid()`, and the `anon` / `authenticated` / `service_role` roles. Nothing else is stubbed, and that file never touches a real database.
 
-This is not a substitute for running against the real instance before Phase 1 ships, but it means CI catches a broken migration on every push rather than on deploy.
+This is not a substitute for running against the real instance before you rely on it, but it means CI catches a broken migration on every push rather than on deploy.
 
 ---
 
@@ -41,17 +46,26 @@ This is not a substitute for running against the real instance before Phase 1 sh
 
 ```
 supabase/
-  migrations/       0001–0018, numbered and immutable once merged
+  migrations/       0001–0019, numbered and immutable once merged
   seed.sql          fixtures — development and test only
   config.toml       single account, magic link, signup disabled
-src/lib/
-  db/enums.ts       the closed sets, mirrored once in TypeScript
-  db/database.types.ts
-  db/client.ts      browser / server / service clients
-  phone.ts          E.164 normalization, matching the database backstop
+src/
+  app/              App Router — one directory per screen
+  components/       queue row, person form, timeline, quick capture, bulk logging
+  lib/
+    actions/        server actions (people, touchpoints, records, capture, search)
+    queries.ts      server-component reads
+    validation.ts   Zod schemas for every mutation
+    capture/        LLM parse (server-only) + shared draft shape
+    db/             enums, generated-style types, three clients
+    phone.ts        E.164 normalization, matching the database backstop
+    offline-queue.ts IndexedDB capture queue + service-worker wiring
+public/
+  sw.js             app-shell only — no rolodex data is ever cached
 tests/
   helpers/          PGlite harness, prelude, fixture ids
-  phase0/           acceptance tests
+  phase0/           schema acceptance
+  phase1/           validation units + Phase 1 acceptance
   unit/
 scripts/
   verify-migrations.ts
@@ -73,7 +87,7 @@ Uncontacted people are quarantined from `v_queue`, `v_never_followed_up`, `v_dir
 
 ## Notes on the build
 
-Decisions made while implementing, worth knowing before Phase 1.
+Decisions made while implementing, worth knowing before touching the schema.
 
 **Sync idempotency key includes `person_id`.** §5.5 specifies a unique index on `(source, external_id)`, but §7.3 has one calendar event writing one row per external attendee — all sharing that event id. As written the second attendee would be rejected. The index is `(source, external_id, person_id)`, which preserves idempotency and supports group rows.
 
@@ -115,9 +129,11 @@ Decisions made while implementing, worth knowing before Phase 1.
 
 ---
 
-## Phase 1 entry criteria
+## Acceptance
 
-Phase 0 is done when all of the below hold. They do, and each is asserted by a test:
+### Phase 0 — Foundation
+
+Each is asserted by a test:
 
 - [x] Migrations run clean from empty
 - [x] All views return

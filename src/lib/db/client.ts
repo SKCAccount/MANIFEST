@@ -13,7 +13,7 @@
 
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types.js';
+import type { Database } from './database.types';
 
 export type ManifestClient = ReturnType<typeof browserClient>;
 

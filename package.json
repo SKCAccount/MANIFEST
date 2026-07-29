@@ -20,12 +20,16 @@
     "ci": "npm run typecheck && npm run db:verify && npm run test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "libphonenumber-js": "^1.12.10",
     "next": "^15.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.3.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
