@@ -178,6 +178,8 @@ owner registration and fixture state, and prints the next action for each.
 
 | Symptom | Cause |
 |---|---|
+| `fetch failed` on the sign-in form | The app cannot reach the project URL. Wrong URL in `.env.local`, project still provisioning, or a free-tier project paused after a week idle. Not a sign-in problem. |
+| "Not connected to a database yet" | No `.env.local`, or it still holds placeholder values. The page tells you which. |
 | Signed in, every screen empty | `app_owners` has no row for you → `npm run bootstrap:owner` |
 | Magic link signs you out again | Callback URL not allowlisted (step 3) |
 | No magic link email | Free-tier SMTP limit — send it from the dashboard instead |

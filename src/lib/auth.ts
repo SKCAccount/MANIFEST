@@ -12,6 +12,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { serverClient } from './db/client';
+import { supabaseConfigStatus } from './config';
 
 export async function supabase() {
   return serverClient(await cookies());
@@ -28,6 +29,11 @@ export type Operator = {
  * server components should not make three round trips.
  */
 export const currentOperator = cache(async (): Promise<Operator | null> => {
+  // With no database configured the honest answer to "who is signed in" is
+  // nobody — not an exception. Throwing here took down the root layout, and
+  // therefore the login page that explains how to configure it.
+  if (!supabaseConfigStatus().ok) return null;
+
   const db = await supabase();
 
   const {
