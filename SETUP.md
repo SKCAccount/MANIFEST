@@ -188,5 +188,5 @@ owner registration and fixture state, and prints the next action for each.
 | "not a known specialty" on save | The value is not in `taxonomies` yet — add it there first |
 
 Before reporting a bug in the app, `npm run ci` confirms the schema and logic
-are sound locally (234 tests, migrations applied to an empty database). If CI is
+are sound locally (245 tests, migrations applied to an empty database). If CI is
 green and the deployed instance misbehaves, the difference is configuration.

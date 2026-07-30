@@ -19,7 +19,7 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 | Views / functions | 19 views, 16 functions |
 | Screens | 12 routes — queue, person, directory, watchlist, geography, rolodex, sources |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
-| Tests | 234 passing |
+| Tests | 245 passing |
 
 ```bash
 npm install
