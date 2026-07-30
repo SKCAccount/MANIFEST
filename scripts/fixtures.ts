@@ -40,7 +40,7 @@ if (!url || !serviceKey) {
   process.exit(1);
 }
 
-const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+const db = createClient(url, serviceKey, { db: { schema: 'manifest' }, auth: { persistSession: false } });
 
 const FIXTURE_PREFIXES = {
   people: '11111111-0000-4000-8000-',

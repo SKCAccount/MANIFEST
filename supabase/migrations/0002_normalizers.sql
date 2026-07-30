@@ -8,6 +8,18 @@
 -- a value cannot be normalized confidently it is returned trimmed rather than
 -- mangled, and v_data_quality surfaces it for the operator to fix by hand.
 
+--
+-- Every object in this file belongs to the `manifest` schema. This database is
+-- intended to host several systems side by side (Kraken, Plunder, Harpoon,
+-- Deepwatch, MANIFEST), and names like `people`, `organizations`, `notes`,
+-- `sources`, `deals` and the `tier` enum are ones every one of them would want
+-- — so each system owns a schema rather than competing for `public`.
+--
+-- `extensions` is in the path because hosted Supabase installs citext and
+-- pg_trgm there; a missing schema in search_path is ignored, so the same file
+-- works against a bare Postgres too.
+set search_path = manifest, public, extensions;
+
 -- ---------------------------------------------------------------------------
 -- Phone → E.164
 -- ---------------------------------------------------------------------------

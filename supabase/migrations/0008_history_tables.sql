@@ -11,6 +11,8 @@
 -- relationship-building; fn_source_metrics resolves tier as of the horizon
 -- date from this table instead.
 
+set search_path = manifest, public, extensions;
+
 create table tier_history (
   id         uuid primary key default gen_random_uuid(),
   person_id  uuid not null references people (id) on delete cascade,

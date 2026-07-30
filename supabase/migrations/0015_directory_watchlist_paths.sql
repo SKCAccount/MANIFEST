@@ -11,6 +11,8 @@
 -- Uncontacted people are excluded without exception. The entire value of a name
 -- in the Directory is that the operator can vouch for the person.
 
+set search_path = manifest, public, extensions;
+
 create view v_directory as
 select
   p.id                as person_id,

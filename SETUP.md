@@ -1,6 +1,9 @@
-# Getting MANIFEST running
+# Getting MANIFEST running on a hosted Supabase project
 
-Nine steps, about fifteen minutes. `npm run doctor` checks your progress at any
+**Want it fully local instead?** [LOCAL.md](LOCAL.md) — Docker, whole stack on
+your machine, magic links caught in a local inbox. Better for testing.
+
+Ten steps, about fifteen minutes. `npm run doctor` checks your progress at any
 point and tells you what is missing — run it whenever you are unsure.
 
 There is no Docker requirement. The test suite runs against an in-process
@@ -13,7 +16,7 @@ Postgres; this guide is for the real instance you will actually use.
 [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
 
 - Region: closest to you.
-- Save the database password somewhere — you need it in step 4 and it is not
+- Save the database password somewhere — you need it in step 5 and it is not
   recoverable from the dashboard afterwards.
 
 **Make two projects if you want to look around before committing.** One scratch
@@ -49,7 +52,16 @@ it belongs in that file and nowhere else.
 npm run doctor      # should show the four env vars green, schema missing
 ```
 
-## 3. Allowlist the callback URL
+## 3. Expose the `manifest` schema
+
+**Project Settings → Data API → Exposed schemas** — add `manifest`.
+
+MANIFEST owns its own schema rather than `public`, so the other systems
+(Kraken, Plunder, Harpoon, Deepwatch) can share this project without colliding.
+Skip this and the API cannot see any of it: you will sign in fine and every
+screen will return nothing.
+
+## 4. Allowlist the callback URL
 
 **Authentication → URL Configuration:**
 
@@ -59,7 +71,7 @@ npm run doctor      # should show the four env vars green, schema missing
 Skip this and the magic link will send successfully and then refuse to sign you
 in, which is a confusing ten minutes.
 
-## 4. Push the schema
+## 5. Push the schema
 
 ```bash
 npx supabase login
@@ -75,7 +87,7 @@ invented people.
 npm run doctor      # schema, taxonomies and views should now be green
 ```
 
-## 5. Create your auth user
+## 6. Create your auth user
 
 Signup is disabled by design (`config.toml`: `enable_signup = false`), so this
 is a deliberate manual step rather than something an unknown address can do.
@@ -85,7 +97,7 @@ is a deliberate manual step rather than something an unknown address can do.
 - Email: your own address
 - Tick **Auto Confirm User**
 
-## 6. Register yourself as the owner
+## 7. Register yourself as the owner
 
 ```bash
 npm run bootstrap:owner
@@ -100,7 +112,7 @@ command.
 npm run doctor      # everything green
 ```
 
-## 7. Start the app
+## 8. Start the app
 
 ```bash
 npm run dev
@@ -114,7 +126,7 @@ couple of messages an hour on the free tier and lands in spam more often than
 not. The reliable path while testing is **Authentication → Users → ⋯ → Send
 magic link**, or generate a link straight from the dashboard.
 
-## 8. Load the demo data — scratch project only
+## 9. Load the demo data — scratch project only
 
 ```bash
 npm run fixtures:load
@@ -146,7 +158,7 @@ That removes exactly the fixture rows — they all carry recognizable id prefixe
 — and leaves anything you have entered alone. `npm run doctor` always tells you
 which of your records are fixtures.
 
-## 9. Enter your thirty most important relationships
+## 10. Enter your thirty most important relationships
 
 This is the actual test, and the spec is explicit that it comes before Phase 2.
 Two entry paths, deliberately different:
@@ -181,12 +193,12 @@ owner registration and fixture state, and prints the next action for each.
 | `fetch failed` on the sign-in form | The app cannot reach the project URL. Wrong URL in `.env.local`, project still provisioning, or a free-tier project paused after a week idle. Not a sign-in problem. |
 | "Not connected to a database yet" | No `.env.local`, or it still holds placeholder values. The page tells you which. |
 | Signed in, every screen empty | `app_owners` has no row for you → `npm run bootstrap:owner` |
-| Magic link signs you out again | Callback URL not allowlisted (step 3) |
+| Magic link signs you out again | Callback URL not allowlisted (step 4) |
 | No magic link email | Free-tier SMTP limit — send it from the dashboard instead |
-| `relation "people" does not exist` | Migrations not pushed → `npm run db:push` |
+| `relation "people" does not exist` | Either migrations are not pushed (`npm run db:push`), or the `manifest` schema is not exposed to the API (step 3). |
 | A screen 500s on a view | A migration applied partially → `npm run db:push` again |
 | "not a known specialty" on save | The value is not in `taxonomies` yet — add it there first |
 
 Before reporting a bug in the app, `npm run ci` confirms the schema and logic
-are sound locally (245 tests, migrations applied to an empty database). If CI is
+are sound locally (253 tests, migrations applied to an empty database). If CI is
 green and the deployed instance misbehaves, the difference is configuration.

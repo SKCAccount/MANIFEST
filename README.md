@@ -19,7 +19,8 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 | Views / functions | 19 views, 16 functions |
 | Screens | 12 routes — queue, person, directory, watchlist, geography, rolodex, sources |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
-| Tests | 245 passing |
+| Schema | `manifest` — one schema per system on a shared database |
+| Tests | 253 passing |
 
 ```bash
 npm install
@@ -28,13 +29,15 @@ npm run ci        # typecheck + migration verification + tests — needs no data
 
 `npm run ci` runs entirely locally: it applies every migration to an in-process Postgres, loads the fixtures, and selects from every view. No Supabase project and no Docker required.
 
-**To actually run the app**, see [SETUP.md](SETUP.md) — nine steps, about fifteen minutes. `npm run doctor` checks your progress at any point and names whatever is missing.
+**To run the app locally** (Docker, full stack on your machine, no email limits): [LOCAL.md](LOCAL.md).
+**To run it against a hosted Supabase project**: [SETUP.md](SETUP.md).
+Either way, `npm run doctor` checks your progress and names whatever is missing.
 
 ---
 
-## Verifying without Docker
+## Verifying with no database at all
 
-The Phase 0 acceptance criteria are almost entirely database-level assertions — a constraint that only *looks* correct is worth nothing. This machine has no Docker and no local Postgres, so the test harness runs **PGlite**: Postgres 18 compiled to WASM, in-process. Same planner, same constraint machinery, same plpgsql.
+The acceptance criteria are almost entirely database-level assertions — a constraint that only *looks* correct is worth nothing. So the test harness runs **PGlite**: Postgres 18 compiled to WASM, in-process. Same planner, same constraint machinery, same plpgsql, no Docker daemon. `npm run ci` therefore works on a clean checkout with nothing installed and nothing configured.
 
 Two things hosted Supabase provides that PGlite does not are created by `tests/helpers/prelude.sql`: the `auth` schema with `auth.uid()`, and the `anon` / `authenticated` / `service_role` roles. Nothing else is stubbed, and that file never touches a real database.
 
@@ -47,8 +50,8 @@ This is not a substitute for running against the real instance before you rely o
 ```
 supabase/
   migrations/       0001–0019, numbered and immutable once merged
+  config.toml       local stack; [api] schemas exposes `manifest`
   seed.sql          fixtures — development and test only
-  config.toml       single account, magic link, signup disabled
 src/
   app/              App Router — one directory per screen
   components/       queue row, person form, timeline, quick capture, bulk logging
@@ -112,6 +115,8 @@ Decisions made while implementing, worth knowing before touching the schema.
 **`v_path_to` is bounded to uncontacted targets.** Materializing paths for every person against every person is quadratic. The view covers the watchlist (which is what the Watchlist and Geography screens join against); `fn_path_to(person_id)` handles any single target.
 
 **`v_deal_sources_org`** was added alongside `v_deal_sources`, since §6.13 asks for the roll-up "per person and organization" and one view cannot have two grains.
+
+**MANIFEST owns the `manifest` schema, not `public`.** This database is intended to host Kraken, Plunder, Harpoon, Deepwatch and MANIFEST side by side. Thirty-three of MANIFEST's objects carry names another business system would plausibly want — `people`, `organizations`, `notes`, `sources`, `deals`, and the `tier` and `deal_stage` enums among them. Table collisions are a merge conflict; **enum collisions are worse**, because Postgres types are schema-scoped and there is no way for two systems to both define `tier` in `public`. So each system owns a schema, `public` holds only the shared extensions, and `tests/phase0/namespacing.test.ts` fails if anything leaks back. Authorization is per-system too: `manifest.app_owners` decides who reads the rolodex, so shared auth across systems does not imply shared access.
 
 ---
 

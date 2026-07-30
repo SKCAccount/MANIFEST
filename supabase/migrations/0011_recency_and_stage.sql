@@ -6,6 +6,8 @@
 
 -- Dates are the operator's dates. Rendering is America/New_York, so a
 -- touchpoint at 9pm on the 4th is on the 4th, not the 5th.
+set search_path = manifest, public, extensions;
+
 create or replace function fn_local_date(ts timestamptz)
 returns date
 language sql

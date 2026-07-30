@@ -6,6 +6,8 @@
 -- years is not a defect — its value is contingent on a trigger that has no
 -- schedule, so elapsed time carries no information about it.
 
+set search_path = manifest, public, extensions;
+
 create view v_data_quality as
 
 -- Near-duplicate organization names. "Naturally New York" and "Naturally NY"

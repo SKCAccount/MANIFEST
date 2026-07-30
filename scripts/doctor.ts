@@ -87,7 +87,7 @@ async function main() {
     process.exit(1);
   }
 
-  const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+  const db = createClient(url, serviceKey, { db: { schema: 'manifest' }, auth: { persistSession: false } });
 
   // -------------------------------------------------------------------------
   // 2. Connectivity + schema
@@ -101,7 +101,9 @@ async function main() {
       state: 'fail',
       detail: looksUnmigrated ? 'tables not found' : reachError.message,
       fix: looksUnmigrated
-        ? 'Run: supabase link --project-ref <ref>  then  supabase db push'
+        ? 'Either migrations are not applied (supabase db push / supabase start), or the ' +
+          '`manifest` schema is not exposed to the API. Hosted: Project Settings → Data API → ' +
+          'Exposed schemas → add `manifest`. Local: [api] schemas in supabase/config.toml.'
         : 'Check the URL and service key belong to the same project.',
     });
     report();

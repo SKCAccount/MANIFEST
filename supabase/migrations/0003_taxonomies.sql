@@ -5,6 +5,8 @@
 -- The set of *domains* is closed (adding one is a code change, because code has
 -- to read it), but the set of values inside a domain is open.
 
+set search_path = manifest, public, extensions;
+
 create table taxonomies (
   id          uuid primary key default gen_random_uuid(),
   domain      text not null,

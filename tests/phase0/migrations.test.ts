@@ -29,7 +29,7 @@ describe('migrations', () => {
 
   it('create the eighteen tables the model calls for', async () => {
     const rows = await h.sql<{ tablename: string }>(
-      `select tablename from pg_tables where schemaname = 'public' order by tablename;`,
+      `select tablename from pg_tables where schemaname = 'manifest' order by tablename;`,
     );
     const names = rows.map((r) => r.tablename);
 
@@ -74,7 +74,7 @@ describe('migrations', () => {
       select c.relname, c.relrowsecurity
       from pg_class c
       join pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = 'public' and c.relkind = 'r';
+      where n.nspname = 'manifest' and c.relkind = 'r';
     `);
 
     const unprotected = rows.filter((r) => !r.relrowsecurity).map((r) => r.relname);
@@ -84,13 +84,13 @@ describe('migrations', () => {
   it('gives every table an owner-scoped select policy', async () => {
     const rows = await h.sql<{ tablename: string; n: number }>(`
       select tablename, count(*)::int as n
-      from pg_policies where schemaname = 'public'
+      from pg_policies where schemaname = 'manifest'
       group by tablename;
     `);
     const withPolicies = new Set(rows.map((r) => r.tablename));
 
     const tables = await h.sql<{ tablename: string }>(
-      `select tablename from pg_tables where schemaname = 'public';`,
+      `select tablename from pg_tables where schemaname = 'manifest';`,
     );
     for (const { tablename } of tables) {
       expect(withPolicies.has(tablename), `${tablename} has no RLS policy`).toBe(true);
@@ -103,7 +103,7 @@ describe('migrations', () => {
       select c.relname, c.reloptions
       from pg_class c
       join pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = 'public' and c.relkind = 'v';
+      where n.nspname = 'manifest' and c.relkind = 'v';
     `);
 
     const leaky = rows

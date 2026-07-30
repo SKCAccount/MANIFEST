@@ -9,6 +9,8 @@
 -- Jurisdiction is derived from people.region rather than duplicated here, so
 -- there is one place to be wrong about where someone lives.
 
+set search_path = manifest, public, extensions;
+
 create table subscriptions (
   id                uuid primary key default gen_random_uuid(),
   person_id         uuid not null references people (id) on delete cascade,

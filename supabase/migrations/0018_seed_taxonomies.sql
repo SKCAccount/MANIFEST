@@ -10,6 +10,8 @@
 -- The operator extends these from Settings. Adding a value is an insert, never
 -- a migration.
 
+set search_path = manifest, public, extensions;
+
 insert into taxonomies (domain, value, label, sort_order, meta) values
 
 -- What they do for a living. Stable; changes only on a career move.

@@ -2,6 +2,8 @@
 -- What a relationship is actually worth, measured against what the operator
 -- assigned it. Active people only, throughout.
 
+set search_path = manifest, public, extensions;
+
 create or replace function fn_tier_rank(t tier)
 returns integer
 language sql

@@ -14,6 +14,8 @@
 -- reassign a loser's touchpoints to the winner. It runs server-side only, and
 -- the setting is transaction-local (set_config(..., true)).
 
+set search_path = manifest, public, extensions;
+
 create or replace function fn_touchpoints_append_only()
 returns trigger
 language plpgsql

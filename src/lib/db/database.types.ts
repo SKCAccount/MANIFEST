@@ -693,7 +693,12 @@ type Table<Row, Required extends keyof Row, Relationships extends readonly unkno
 type View<Row> = { Row: Row; Relationships: [] };
 
 export type Database = {
-  public: {
+  /**
+   * MANIFEST owns the `manifest` schema, not `public`. The key here must match
+   * the `db.schema` option the clients pass, or supabase-js resolves table
+   * names against the wrong schema and every query fails to type.
+   */
+  manifest: {
     Tables: {
       people: Table<
         PeopleRow,

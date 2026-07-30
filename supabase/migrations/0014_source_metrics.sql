@@ -19,6 +19,8 @@
 -- six-month-old one: both are measured at the same age, not at today's date,
 -- which would systematically favour whichever one has had longer to mature.
 
+set search_path = manifest, public, extensions;
+
 create or replace function fn_source_metrics(p_source_id uuid, p_horizon_days integer default null)
 returns table (
   source_id                       uuid,

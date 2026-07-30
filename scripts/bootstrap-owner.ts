@@ -34,7 +34,7 @@ if (!email) {
   process.exit(1);
 }
 
-const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+const db = createClient(url, serviceKey, { db: { schema: 'manifest' }, auth: { persistSession: false } });
 
 const { data: list, error: listError } = await db.auth.admin.listUsers();
 if (listError) {

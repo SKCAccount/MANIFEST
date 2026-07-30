@@ -106,6 +106,9 @@ export async function createHarness(options: { seed?: boolean } = {}): Promise<H
     },
   };
 
+  // Tests write unqualified SQL, exactly as the migrations do.
+  await db.exec(`set search_path = manifest, public, extensions;`);
+
   await db.exec(`
     insert into app_owners (user_id, label)
     values ('${OWNER_ID}', 'test operator')
@@ -127,7 +130,7 @@ export async function listViews(db: PGlite): Promise<string[]> {
     select c.relname as viewname
     from pg_class c
     join pg_namespace n on n.oid = c.relnamespace
-    where n.nspname = 'public' and c.relkind in ('v', 'm')
+    where n.nspname = 'manifest' and c.relkind in ('v', 'm')
     order by c.relname;
   `);
   return result.rows.map((r) => r.viewname);

@@ -32,7 +32,7 @@ afterAll(async () => {
 describe('database.types.ts tracks the schema', () => {
   it('names every table', async () => {
     const rows = await h.sql<{ tablename: string }>(
-      `select tablename from pg_tables where schemaname = 'public';`,
+      `select tablename from pg_tables where schemaname = 'manifest';`,
     );
     const missing = rows.map((r) => r.tablename).filter((t) => !typesSource.includes(`${t}:`));
     expect(missing, 'tables present in the schema but absent from database.types.ts').toEqual([]);
@@ -42,7 +42,7 @@ describe('database.types.ts tracks the schema', () => {
     const rows = await h.sql<{ relname: string }>(`
       select c.relname from pg_class c
       join pg_namespace n on n.oid = c.relnamespace
-      where n.nspname = 'public' and c.relkind = 'v';
+      where n.nspname = 'manifest' and c.relkind = 'v';
     `);
     const missing = rows.map((r) => r.relname).filter((v) => !typesSource.includes(`${v}:`));
     expect(missing, 'views present in the schema but absent from database.types.ts').toEqual([]);
@@ -52,7 +52,7 @@ describe('database.types.ts tracks the schema', () => {
     const rows = await h.sql<{ typname: string }>(`
       select t.typname from pg_type t
       join pg_namespace n on n.oid = t.typnamespace
-      where n.nspname = 'public' and t.typtype = 'e';
+      where n.nspname = 'manifest' and t.typtype = 'e';
     `);
     const missing = rows.map((r) => r.typname).filter((t) => !typesSource.includes(`${t}:`));
     expect(missing, 'enum types absent from database.types.ts').toEqual([]);
@@ -64,7 +64,7 @@ describe('database.types.ts tracks the schema', () => {
       from pg_enum e
       join pg_type t on t.oid = e.enumtypid
       join pg_namespace n on n.oid = t.typnamespace
-      where n.nspname = 'public';
+      where n.nspname = 'manifest';
     `);
 
     const missing = rows

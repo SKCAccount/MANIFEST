@@ -7,8 +7,15 @@
 -- organization type, industry category, source kind, watchlist source) lives in
 -- `taxonomies` instead, so adding a value never requires a migration.
 
-create extension if not exists citext;
-create extension if not exists pg_trgm;
+-- One schema per system. See the note in 0002 and later files.
+create schema if not exists manifest;
+
+-- Extensions stay shared: every system on this database uses the same
+-- citext and pg_trgm, and installing them per-schema would duplicate types.
+create extension if not exists citext with schema public;
+create extension if not exists pg_trgm with schema public;
+
+set search_path = manifest, public, extensions;
 
 -- ---------------------------------------------------------------------------
 -- Closed sets

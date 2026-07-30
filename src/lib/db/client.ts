@@ -17,6 +17,14 @@ import type { Database } from './database.types';
 
 export type ManifestClient = ReturnType<typeof browserClient>;
 
+/**
+ * MANIFEST owns one schema on a database shared with the other systems, so
+ * every client is pinned to it. Without this, supabase-js would resolve
+ * `people` against `public` and find nothing — or, worse, find another
+ * system's table of the same name.
+ */
+export const SCHEMA = 'manifest';
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -31,7 +39,7 @@ const url = () => requireEnv('NEXT_PUBLIC_SUPABASE_URL');
 const anonKey = () => requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
 export function browserClient() {
-  return createBrowserClient<Database>(url(), anonKey());
+  return createBrowserClient<Database>(url(), anonKey(), { db: { schema: SCHEMA } });
 }
 
 type CookieStore = {
@@ -45,6 +53,7 @@ type CookieStore = {
  */
 export function serverClient(cookies: CookieStore) {
   return createServerClient<Database>(url(), anonKey(), {
+    db: { schema: SCHEMA },
     cookies: {
       getAll: () => cookies.getAll(),
       setAll: (toSet) => {
@@ -74,6 +83,7 @@ export function serviceClient() {
   }
 
   return createClient<Database>(url(), requireEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+    db: { schema: SCHEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

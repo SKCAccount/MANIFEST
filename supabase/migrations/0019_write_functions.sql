@@ -15,6 +15,8 @@
 -- could come to mean "I found their name", which is the failure mode the whole
 -- contact_status split exists to prevent.
 
+set search_path = manifest, public, extensions;
+
 create or replace function fn_create_active_person(p_person jsonb, p_touchpoint jsonb)
 returns uuid
 language plpgsql

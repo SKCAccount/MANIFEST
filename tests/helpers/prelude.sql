@@ -10,6 +10,7 @@ create role anon nologin noinherit;
 create role authenticated nologin noinherit;
 create role service_role nologin noinherit bypassrls;
 
+-- The `manifest` schema does not exist yet; migration 0017 grants on it.
 grant usage on schema public to anon, authenticated, service_role;
 grant usage on schema auth to anon, authenticated, service_role;
 

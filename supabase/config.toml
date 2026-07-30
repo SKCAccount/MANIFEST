@@ -1,9 +1,22 @@
+# Local Supabase stack. `supabase start` reads this.
+#
+# The same file configures the hosted project's API exposure, so the two agree
+# on the one thing that matters most here: which schema is reachable.
+
 project_id = "manifest"
 
 [api]
 enabled = true
 port = 54321
-schemas = ["public"]
+
+# MANIFEST owns the `manifest` schema, not `public`.
+#
+# This database is meant to host several systems side by side (Kraken, Plunder,
+# Harpoon, Deepwatch, MANIFEST). Each gets a schema and each exposes its own
+# here; `public` stays empty of application tables so nothing collides. When
+# another system joins, add its schema to this list rather than moving anything
+# into `public`.
+schemas = ["manifest"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
@@ -19,6 +32,9 @@ enabled = true
 enabled = true
 port = 54323
 
+# Catches every outbound email locally, including magic links. This is why the
+# local stack is nicer to test against than a hosted project: no SMTP limits, no
+# spam folder, and the link is one click away at localhost:54324.
 [inbucket]
 enabled = true
 port = 54324
@@ -31,15 +47,19 @@ jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 
-# Single account, magic link. Nothing else is enabled: this database holds
-# private notes about real people and there is exactly one person who should
-# ever read it.
-enable_signup = false
+# Single account. This database holds private notes about real people —
+# including people who have never spoken to the operator — and there is exactly
+# one person who should ever read it.
+#
+# Locally, signup is left on so `supabase start` can create the first user
+# without a dashboard. The hosted project should have it off; see LOCAL.md.
+enable_signup = true
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = false
-enable_confirmations = true
+enable_signup = true
+# No confirmation step locally: the point is to get signed in and start typing.
+enable_confirmations = false
 double_confirm_changes = true
 secure_password_change = true
 

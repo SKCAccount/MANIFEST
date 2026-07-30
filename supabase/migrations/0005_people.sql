@@ -6,6 +6,8 @@
 -- two-way touchpoint) or `uncontacted` (a deliberately curated watchlist entry,
 -- quarantined from everything that assumes a relationship exists).
 
+set search_path = manifest, public, extensions;
+
 create table people (
   id                  uuid primary key default gen_random_uuid(),
 

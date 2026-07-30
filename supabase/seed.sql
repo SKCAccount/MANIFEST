@@ -21,6 +21,8 @@
 -- Organizations
 -- ---------------------------------------------------------------------------
 
+set search_path = manifest, public, extensions;
+
 insert into organizations (id, name, organization_type, industry_category, city, state, country, domain) values
 ('22222222-0000-4000-8000-000000000001', 'Naturally New York',          'Association',                'Professional Association', 'New York',        'NY', 'US', 'naturallyny.org'),
 ('22222222-0000-4000-8000-000000000002', 'Gendell Partners',            'Professional Services Firm', 'CPG',                      'New York',        'NY', 'US', 'gendellpartners.com'),

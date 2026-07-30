@@ -10,6 +10,8 @@
 -- touchpoints (append-only)
 -- ---------------------------------------------------------------------------
 
+set search_path = manifest, public, extensions;
+
 create table touchpoints (
   id            uuid primary key default gen_random_uuid(),
   person_id     uuid not null references people (id) on delete cascade,

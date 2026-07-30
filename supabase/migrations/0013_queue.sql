@@ -13,6 +13,8 @@
 -- nothing else gets skipped; a row that says "changed jobs three weeks ago"
 -- gets acted on.
 
+set search_path = manifest, public, extensions;
+
 create view v_queue as
 with scored as (
   select

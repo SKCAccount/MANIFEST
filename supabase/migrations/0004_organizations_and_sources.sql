@@ -9,6 +9,8 @@
 -- Created inline from the person form. Never required to be complete: name is
 -- the only thing that must be present.
 
+set search_path = manifest, public, extensions;
+
 create table organizations (
   id                uuid primary key default gen_random_uuid(),
   name              citext not null,

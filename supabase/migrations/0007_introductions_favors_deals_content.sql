@@ -12,6 +12,8 @@
 --   * Manually entered rows, which cover introductions the operator made for
 --     other people. Those have no corresponding profile field.
 
+set search_path = manifest, public, extensions;
+
 create table introductions (
   id                   uuid primary key default gen_random_uuid(),
   perspective          intro_perspective not null,
