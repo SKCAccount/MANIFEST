@@ -172,7 +172,6 @@ export async function commitCapture(
           position,
           organization_id: organizationId,
           city,
-          region: 'us',
           tier: 'C',
           email_work: email || null,
           phone_mobile: normalizePhone(phone) || null,

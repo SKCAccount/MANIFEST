@@ -10,14 +10,12 @@
 
 import { z } from 'zod';
 import {
-  CONSENT_STATUS_VALUES,
   CONTACT_STATUS_VALUES,
   DEAL_STAGE_VALUES,
   FAVOR_DIRECTION_VALUES,
   FAVOR_KIND_VALUES,
   FOLLOWUP_STATUS_VALUES,
   NOTE_CATEGORY_VALUES,
-  REGION_VALUES,
   TIER_VALUES,
   TOUCH_CHANNEL_VALUES,
   TOUCH_DIRECTION_VALUES,
@@ -137,7 +135,6 @@ const descriptorFields = {
   city: nullableText,
   state: nullableText,
   country: nullableText,
-  region: z.enum(REGION_VALUES).nullish(),
   email_work: nullableEmail,
   email_personal: nullableEmail,
   phone_mobile: nullableText,
@@ -507,7 +504,7 @@ export const bulkEventLogSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Deals and subscriptions
+// Deals
 // ---------------------------------------------------------------------------
 
 export const dealSchema = z.object({
@@ -524,14 +521,6 @@ export const dealSchema = z.object({
   commission_earned_cents: nullableCents,
   commission_paid_cents: nullableCents,
   note: nullableText,
-});
-
-export const subscriptionSchema = z.object({
-  person_id: uuid,
-  list_key: requiredText('A list', 100),
-  status: z.enum(CONSENT_STATUS_VALUES),
-  consent_source: nullableText,
-  consent_evidence: nullableText,
 });
 
 // ---------------------------------------------------------------------------

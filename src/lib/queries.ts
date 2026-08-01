@@ -203,7 +203,6 @@ export async function getPersonDetail(personId: string) {
     referrer,
     tierHistory,
     affiliations,
-    subscriptions,
     paths,
   ] = await Promise.all([
     db
@@ -230,7 +229,6 @@ export async function getPersonDetail(personId: string) {
       : Promise.resolve({ data: null, error: null }),
     db.from('tier_history').select('*').eq('person_id', personId).order('changed_at', { ascending: true }),
     db.from('affiliation_history').select('*').eq('person_id', personId).order('created_at', { ascending: false }),
-    db.from('subscriptions').select('*').eq('person_id', personId),
     // Warm paths matter most for an uncontacted target, but are useful for a
     // cold active relationship too.
     db.rpc('fn_path_to', { p_target_person_id: personId }),
@@ -252,7 +250,6 @@ export async function getPersonDetail(personId: string) {
     referrer: referrer.data,
     tierHistory: tierHistory.data ?? [],
     affiliations: affiliations.data ?? [],
-    subscriptions: subscriptions.data ?? [],
     paths: (paths.data ?? []) as PathToRow[],
   };
 }
@@ -275,7 +272,7 @@ export async function getRolodex(filters: RolodexFilters) {
   const db = await supabase();
   let query = db
     .from('people')
-    .select('id, full_name, position, contact_status, tier, city, state, region, professional_function, specialties, relationship_to_me, watchlist_priority, organization:organizations(id, name)');
+    .select('id, full_name, position, contact_status, tier, city, state, professional_function, specialties, relationship_to_me, watchlist_priority, organization:organizations(id, name)');
 
   if (filters.status !== 'all') {
     query = query.eq('contact_status', filters.status ?? 'active');

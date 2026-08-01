@@ -48,15 +48,7 @@ create type favor_direction as enum ('gave', 'received');
 
 create type deal_stage as enum ('referred', 'screening', 'diligence', 'docs', 'funded', 'declined', 'dead');
 
-create type consent_status as enum (
-  'never_asked', 'pending', 'subscribed', 'unsubscribed', 'bounced', 'suppressed'
-);
-
 create type intro_perspective as enum ('made_by_me', 'received_by_me', 'observed');
-
--- Drives mailing-list jurisdiction (CAN-SPAM / CASL / GDPR / PECR) without a
--- second column to keep in sync.
-create type region_code as enum ('us', 'ca', 'eu', 'uk', 'apac', 'other');
 
 create type note_category as enum (
   'personal', 'professional', 'preference', 'warning', 'mutual_interest', 'compliance'

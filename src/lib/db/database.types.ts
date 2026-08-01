@@ -11,7 +11,6 @@
  */
 
 import type {
-  ConsentStatus,
   ContactStatus,
   DealStage,
   DevStage,
@@ -20,7 +19,6 @@ import type {
   FollowupStatus,
   IntroPerspective,
   NoteCategory,
-  Region,
   StagingKind,
   StagingStatus,
   Tier,
@@ -60,7 +58,6 @@ export type PeopleRow = {
   city: string | null;
   state: string | null;
   country: string | null;
-  region: Region | null;
   contact_status: ContactStatus;
   first_contact_at: string | null;
   watchlist_reason: string | null;
@@ -258,26 +255,6 @@ export type ContentTouchesRow = {
   updated_at: string;
 };
 
-export type SubscriptionsRow = {
-  id: string;
-  person_id: string;
-  list_key: string;
-  status: ConsentStatus;
-  consent_source: string | null;
-  consent_at: string | null;
-  consent_evidence: string | null;
-  unsubscribed_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type SuppressionsRow = {
-  id: string;
-  email: string;
-  reason: string | null;
-  created_at: string;
-};
-
 export type StagingRecordsRow = {
   id: string;
   kind: StagingKind;
@@ -424,7 +401,6 @@ export type WatchlistRow = {
   city: string | null;
   state: string | null;
   country: string | null;
-  region: Region | null;
   linkedin_url: string | null;
   email_work: string | null;
   email_personal: string | null;
@@ -463,7 +439,6 @@ export type DirectoryRow = {
   city: string | null;
   state: string | null;
   country: string | null;
-  region: Region | null;
   tier: Tier;
   email_work: string | null;
   email_personal: string | null;
@@ -489,7 +464,6 @@ export type GeographyRow = {
   city: string | null;
   state: string | null;
   country: string | null;
-  region: Region | null;
   tier: Tier | null;
   professional_function: string[];
   specialties: string[];
@@ -647,7 +621,6 @@ export type DataQualityRow = {
   issue_kind:
     | 'duplicate_organization'
     | 'taxonomy_drift'
-    | 'missing_region'
     | 'missing_contact_info'
     | 'event_missing_cost'
     | 'stale_active_record'
@@ -739,8 +712,6 @@ export type Database = {
       favors: Table<FavorsRow, 'person_id' | 'direction'>;
       deals: Table<DealsRow, 'name'>;
       content_touches: Table<ContentTouchesRow, 'person_id' | 'content_title'>;
-      subscriptions: Table<SubscriptionsRow, 'person_id' | 'list_key'>;
-      suppressions: Table<SuppressionsRow, 'email'>;
       staging_records: Table<StagingRecordsRow, 'kind'>;
       merge_log: Table<MergeLogRow, 'winner_person_id' | 'loser_person_id' | 'loser_snapshot'>;
       sync_state: Table<SyncStateRow, 'channel'>;
@@ -808,9 +779,7 @@ export type Database = {
       favor_direction: FavorDirection;
       favor_kind: FavorKind;
       deal_stage: DealStage;
-      consent_status: ConsentStatus;
       intro_perspective: IntroPerspective;
-      region_code: Region;
       note_category: NoteCategory;
       followup_status: FollowupStatus;
       staging_kind: StagingKind;

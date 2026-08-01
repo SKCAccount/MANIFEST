@@ -34,7 +34,7 @@ describe('everything lives in the manifest schema', () => {
     const owned = await h.sql<{ n: string }>(
       `select count(*) as n from pg_tables where schemaname = 'manifest';`,
     );
-    expect(Number(owned[0]!.n)).toBeGreaterThanOrEqual(19);
+    expect(Number(owned[0]!.n)).toBeGreaterThanOrEqual(17);
   });
 
   it('puts every view there', async () => {

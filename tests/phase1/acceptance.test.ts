@@ -206,7 +206,6 @@ describe('usable by hand with zero integrations', () => {
           first_name: 'Hand',
           last_name: 'Entered',
           tier: 'B',
-          region: 'us',
           city: 'Boston',
           email_work: 'hand@example.com',
           professional_function: ['Consultant'],

@@ -48,7 +48,6 @@ export default async function EditPersonPage({ params }: Props) {
           city: person.city,
           state: person.state,
           country: person.country,
-          region: person.region,
           tier: person.tier,
           met_at_source_id: person.met_at_source_id,
           met_on: person.met_on,

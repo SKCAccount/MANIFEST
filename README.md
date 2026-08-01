@@ -1,26 +1,32 @@
 # MANIFEST
 
-A rolodex for the principal of Sea King Capital LLC. Not a CRM funnel, not a lead database, not a cold outreach machine.
+A rolodex for the principal of Sea King Capital LLC. Not a CRM funnel, not a lead database, not a cold outreach machine, and **not a mailing list**.
 
 Almost every record is a real person the operator has actually spoken to. The system exists to keep that network from decaying by accident, to make it searchable in ways LinkedIn is not, and to reveal which relationships and which rooms are genuinely producing.
+
+Everything here is addressed to one person at a time. There is no subscription state, no consent ledger, no suppression list and no bulk export, because there is no bulk send — see [§11](#11--settled-and-outstanding).
 
 ---
 
 ## Status
 
-**Phase 0 (Foundation) and Phase 1 (The rolodex) are complete and verified.** Phases 2–4 are not started.
+**Phase 0 (Foundation) and Phase 1 (The rolodex) are complete and verified.** Nothing is deployed: there is no hosted project yet, and the schema has only ever been applied locally and to the test harness.
 
 Phase 1 is a shippable product on its own: fully usable by hand, with zero integrations.
 
 | | |
 |---|---|
 | Migrations | 19, applying clean from empty |
-| Tables | 18, plus `app_owners` for RLS |
-| Views / functions | 19 views, 16 functions |
-| Screens | 12 routes — queue, person, directory, watchlist, geography, rolodex, sources |
+| Tables | 16, plus `app_owners` for RLS |
+| Views | 19 |
+| Functions | 29 — 19 callable, 10 trigger |
+| Enums | 15 |
+| Screens | 12, plus the login and offline pages — queue, person, directory, watchlist, geography, rolodex, sources |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
 | Schema | `manifest` — one schema per system on a shared database |
 | Tests | 253 passing |
+
+**What is left.** Phase 2 is Gmail and Calendar sync. Phase 3 is event economics on the Sources screen — the data behind it is already being recorded. Phase 4, as this repository described it, was a consent-gated export to a mailing platform; that is now out of scope rather than pending, so unless something else is added it is void. None of the three has been started.
 
 ```bash
 npm install
@@ -49,7 +55,7 @@ This is not a substitute for running against the real instance before you rely o
 
 ```
 supabase/
-  migrations/       0001–0019, numbered and immutable once merged
+  migrations/       0001–0019, numbered; immutable once applied anywhere real
   config.toml       local stack; [api] schemas exposes `manifest`
   seed.sql          fixtures — development and test only
 src/
@@ -60,7 +66,7 @@ src/
     queries.ts      server-component reads
     validation.ts   Zod schemas for every mutation
     capture/        LLM parse (server-only) + shared draft shape
-    db/             enums, generated-style types, three clients
+    db/             enums, hand-written types, three clients
     phone.ts        E.164 normalization, matching the database backstop
     offline-queue.ts IndexedDB capture queue + service-worker wiring
 public/
@@ -71,8 +77,15 @@ tests/
   phase1/           validation units + Phase 1 acceptance
   unit/
 scripts/
-  verify-migrations.ts
+  doctor.ts             names whatever is missing from your setup
+  bootstrap-owner.ts    creates the auth user and registers it in app_owners
+  fixtures.ts           load / clear the 25 demo people
+  verify-migrations.ts  applies every migration to a throwaway database
 ```
+
+**Migrations are edited in place, not superseded, until something real depends on them.** The numbering rule protects databases that have already applied a migration; no such database exists yet. When the mailing-list machinery came out, `0001`, `0005`, `0009`, `0015`, `0016` and `0019` were rewritten rather than followed by a `0020` that dropped what `0009` had just created. Once there is a hosted project, that stops being true and changes go forward-only.
+
+**Do not run `npm run db:types`.** `src/lib/db/database.types.ts` is written by hand. It exports named row types — `PeopleRow`, `SourceMetricsRow`, `PathToRow` — that `supabase gen types` does not produce, and running the script overwrites the file and collapses every table and view to `never`. The guard is `tests/phase0/types.test.ts`, which introspects the live schema and fails if the hand-written types drift from it. Edit the file, then let CI check it.
 
 ---
 
@@ -84,7 +97,7 @@ A person is either `active` or `uncontacted`, and **promotion requires two-way c
 
 This is enforced by trigger (`trg_first_contact`), and it is what makes Gmail sync correct with no special handling: an outbound email promotes nothing, and their reply promotes them. A LinkedIn message to someone in Colorado Springs that goes unanswered stays exactly what it was — a watchlist entry with an attempt on the record.
 
-Uncontacted people are quarantined from `v_queue`, `v_never_followed_up`, `v_directory`, `v_relationship_value`, `v_reciprocity`, `v_tier_mismatch`, every `fn_source_metrics` denominator, and every export. The filter is written into each view definition rather than left to callers.
+Uncontacted people are quarantined from `v_queue`, `v_never_followed_up`, `v_directory`, `v_relationship_value`, `v_reciprocity`, `v_tier_mismatch`, and every `fn_source_metrics` denominator. The filter is written into each view definition rather than left to callers.
 
 ---
 
@@ -110,13 +123,17 @@ Decisions made while implementing, worth knowing before touching the schema.
 
 **Value bands.** §6.3's "+0.8 if computed value exceeds assigned tier" needs a mapping the spec does not give. `fn_tier_for_value` uses A ≥ 70, B ≥ 45, C ≥ 20, else D. `v_tier_mismatch` keeps the spec's explicit thresholds (C/D above 60, A below 20).
 
-**"An unsent Derek On Capital piece"** is derived from `content_touches` — the distinct set of titles already sent to someone *is* the library — so it needs no nineteenth table.
+**"An unsent Derek On Capital piece"** is derived from `content_touches` — the distinct set of titles already sent to someone *is* the library — so it needs no seventeenth table. Note that this survived the mailing-list removal on purpose: `content_touches` records that the operator sent one named person one piece, which is outreach, not distribution.
 
 **`v_path_to` is bounded to uncontacted targets.** Materializing paths for every person against every person is quadratic. The view covers the watchlist (which is what the Watchlist and Geography screens join against); `fn_path_to(person_id)` handles any single target.
 
 **`v_deal_sources_org`** was added alongside `v_deal_sources`, since §6.13 asks for the roll-up "per person and organization" and one view cannot have two grains.
 
-**MANIFEST owns the `manifest` schema, not `public`.** This database is intended to host Kraken, Plunder, Harpoon, Deepwatch and MANIFEST side by side. Thirty-three of MANIFEST's objects carry names another business system would plausibly want — `people`, `organizations`, `notes`, `sources`, `deals`, and the `tier` and `deal_stage` enums among them. Table collisions are a merge conflict; **enum collisions are worse**, because Postgres types are schema-scoped and there is no way for two systems to both define `tier` in `public`. So each system owns a schema, `public` holds only the shared extensions, and `tests/phase0/namespacing.test.ts` fails if anything leaks back. Authorization is per-system too: `manifest.app_owners` decides who reads the rolodex, so shared auth across systems does not imply shared access.
+**The mailing-list machinery was built and then removed.** The spec modelled consent from day one — a `subscriptions` table with per-list status and consent evidence, an email-keyed `suppressions` table, a `consent_status` enum, and a `region_code` on every person to drive CAN-SPAM / CASL / GDPR jurisdiction. All of it worked. None of it belonged: MANIFEST manages outreach to people the operator already knows, and a rolodex that also holds a subscriber list invites someone to treat the rolodex as a subscriber list. So the tables, both enums, the region column and the `missing_region` data-quality check are gone.
+
+`region` went with them because its only consumer was the compliance gate. Geography is `city` / `state` / `country`, which is what the Geography screen has always grouped on; a `us`/`eu`/`apac` bucket that nothing read would have become a field that eventually gets filled in wrong — the same reasoning that dropped `entity_scope`. What survived is `do_not_contact`, which is a fact about a person rather than list state, and `content_touches`.
+
+**MANIFEST owns the `manifest` schema, not `public`.** This database is intended to host Kraken, Plunder, Harpoon, Deepwatch and MANIFEST side by side. Most of MANIFEST's 17 tables and 15 enums carry names another business system would plausibly want — `people`, `organizations`, `notes`, `sources`, `deals`, and the `tier` and `deal_stage` enums among them. Table collisions are a merge conflict; **enum collisions are worse**, because Postgres types are schema-scoped and there is no way for two systems to both define `tier` in `public`. So each system owns a schema, `public` holds only the shared extensions, and `tests/phase0/namespacing.test.ts` fails if anything leaks back. Authorization is per-system too: `manifest.app_owners` decides who reads the rolodex, so shared auth across systems does not imply shared access.
 
 ---
 
@@ -126,11 +143,12 @@ Decisions made while implementing, worth knowing before touching the schema.
 
 - **Scope: Sea King Capital only.** Not Blaze Allen, not Sea King Solutions. The spec's proposed `entity_scope` tag was therefore dropped rather than left in place unused — a scoping dimension nobody filters on is a field that eventually gets filled in wrong. `tags` remains as the unconstrained escape valve it was always meant to be.
 - **Own domain: `seakingcapital.com`.** Single domain, set in `MANIFEST_OWN_DOMAINS`. This is what Phase 2 sync uses to decide which side of a thread is the operator — and therefore which touchpoints are inbound, which is what drives promotion.
+- **Gmail scope: all mail.** `MANIFEST_GMAIL_LABEL` stays empty. Higher recall and higher noise, chosen deliberately: a label is a thing to maintain forever, and a relationship missed because a message was unlabelled is the failure this system exists to prevent. Full history per person is also what the eventual relationship summaries read from.
+- **No mailing list.** MANIFEST manages outreach to people the operator actually knows, one at a time. It is not a newsletter tool, so it holds no subscription, consent or suppression state, and the ESP question the spec left open is void rather than deferred. `content_touches` stays: "I sent this person this piece" is a record of one-to-one outreach and feeds the queue's talking-point suggestion. Sending to a list, if it ever happens, is a different tool's job.
 
 **Still open.**
 
-1. **Gmail scope** (blocks Phase 2). All mail, or a labelled subset? Wired as `MANIFEST_GMAIL_LABEL`, empty meaning all. All-mail is higher recall and higher noise; a label is deliberate but needs maintaining.
-2. **Target ESP** (blocks Phase 4). Column naming in the export should match whatever it is. Nothing depends on it before then.
+Nothing. Both of the spec's §11 questions are resolved above.
 
 ---
 

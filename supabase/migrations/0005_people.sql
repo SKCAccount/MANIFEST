@@ -38,7 +38,6 @@ create table people (
   city                text,
   state               text,
   country             text,
-  region              region_code,
 
   -- Contact status ---------------------------------------------------------
   contact_status      contact_status not null default 'active',

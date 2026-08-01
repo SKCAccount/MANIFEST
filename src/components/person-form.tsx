@@ -11,7 +11,7 @@ import {
   TextArea,
   TextField,
 } from './form-controls';
-import { REGION_VALUES, TIER_VALUES, WATCH_PRIORITY_VALUES } from '@/lib/db/enums';
+import { TIER_VALUES, WATCH_PRIORITY_VALUES } from '@/lib/db/enums';
 import type { ActionResult } from '@/lib/validation';
 
 export type TaxonomyOption = { value: string; label: string };
@@ -40,7 +40,6 @@ export type PersonDefaults = {
   city?: string | null;
   state?: string | null;
   country?: string | null;
-  region?: string | null;
   tier?: string | null;
   met_at_source_id?: string | null;
   met_on?: string | null;
@@ -65,11 +64,6 @@ type Props = {
   defaults?: PersonDefaults;
   action: (formData: FormData) => Promise<ActionResult<{ id: string }> | ActionResult<void>>;
 };
-
-const REGION_OPTIONS = REGION_VALUES.map((value) => ({
-  value,
-  label: value.toUpperCase(),
-}));
 
 export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
   const router = useRouter();
@@ -191,18 +185,10 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
 
       {/* ------------------------------------------------------------------ */}
       <Section title="Where">
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <TextField name="city" label="City" defaultValue={defaults.city} />
           <TextField name="state" label="State" defaultValue={defaults.state} />
           <TextField name="country" label="Country" defaultValue={defaults.country ?? 'US'} />
-          <SelectField
-            name="region"
-            label="Region"
-            includeBlank="—"
-            options={REGION_OPTIONS}
-            defaultValue={defaults.region ?? 'us'}
-            hint="Drives mailing-list jurisdiction."
-          />
         </div>
       </Section>
 

@@ -61,21 +61,8 @@ export const DEAL_STAGE_VALUES = [
 ] as const;
 export type DealStage = (typeof DEAL_STAGE_VALUES)[number];
 
-export const CONSENT_STATUS_VALUES = [
-  'never_asked',
-  'pending',
-  'subscribed',
-  'unsubscribed',
-  'bounced',
-  'suppressed',
-] as const;
-export type ConsentStatus = (typeof CONSENT_STATUS_VALUES)[number];
-
 export const INTRO_PERSPECTIVE_VALUES = ['made_by_me', 'received_by_me', 'observed'] as const;
 export type IntroPerspective = (typeof INTRO_PERSPECTIVE_VALUES)[number];
-
-export const REGION_VALUES = ['us', 'ca', 'eu', 'uk', 'apac', 'other'] as const;
-export type Region = (typeof REGION_VALUES)[number];
 
 export const NOTE_CATEGORY_VALUES = [
   'personal',

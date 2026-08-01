@@ -81,21 +81,21 @@ insert into sources (id, event_name, kind) values
 insert into people (
   id, first_name, last_name, position, organization_id,
   professional_function, specialties, relationship_to_me,
-  city, state, country, region, contact_status, first_contact_at,
+  city, state, country, contact_status, first_contact_at,
   met_at_source_id, met_on, tier, email_work, phone_mobile, linkedin_url, summary, tags
 ) values
 
 -- 1. The spec's own example record.
 ('11111111-0000-4000-8000-000000000001', 'Adrienne', 'DeLisio', 'Executive Director', '22222222-0000-4000-8000-000000000001',
  '{Association Executive}', '{CPG}', '{Community,Deal Source}',
- 'New York', 'NY', 'US', 'us', 'active', now() - interval '400 days',
+ 'New York', 'NY', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'A', 'adrienne@naturallyny.org', '(212) 555-0142',
  'https://www.linkedin.com/in/adriennedelisio/', 'Runs the association. Knows every CPG founder in the northeast.', '{}'),
 
 -- 2. The connector. Two introductions to the operator, and the operator owes her.
 ('11111111-0000-4000-8000-000000000002', 'Erica', 'Gendell', 'Managing Partner', '22222222-0000-4000-8000-000000000002',
  '{Consultant}', '{CPG,DTC}', '{Referral Partner,Community}',
- 'New York', 'NY', 'US', 'us', 'active', now() - interval '900 days',
+ 'New York', 'NY', 'US', 'active', now() - interval '900 days',
  '33333333-0000-4000-8000-000000000012', null, 'B', 'erica@gendellpartners.com', '212-555-0198',
  'linkedin.com/in/ericagendell', 'Former colleague. The single most generous introducer in the network.', '{}'),
 
@@ -103,32 +103,32 @@ insert into people (
 --    person-level specialty non-negotiable.
 ('11111111-0000-4000-8000-000000000005', 'Marcus', 'Vance', 'Partner', '22222222-0000-4000-8000-000000000005',
  '{Attorney}', '{Structured Finance,M&A}', '{Retained Service Provider}',
- 'Tampa', 'FL', 'US', 'us', 'active', now() - interval '400 days',
+ 'Tampa', 'FL', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'B', 'mvance@carltonfields.com', '+18135550117',
  'https://linkedin.com/in/marcusvance', 'Does the securitization work. Bills like it.', '{}'),
 
 ('11111111-0000-4000-8000-000000000007', 'Nina', 'Okafor', 'VP Operations', '22222222-0000-4000-8000-000000000007',
  '{Operator}', '{CPG,Supplements}', '{Deal Source}',
- 'Newark', 'NJ', 'US', 'us', 'active', now() - interval '400 days',
+ 'Newark', 'NJ', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'C', 'nina@verdantprovisions.com', '9735550164',
  'linkedin.com/in/ninaokafor', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000008', 'Grant', 'Whitfield', 'Principal', '22222222-0000-4000-8000-000000000008',
  '{Broker}', '{Factoring and ABL}', '{Deal Source,Referral Partner}',
- 'Philadelphia', 'PA', 'US', 'us', 'active', now() - interval '400 days',
+ 'Philadelphia', 'PA', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'B', 'grant@whitfieldco.com', '2155550188',
  'linkedin.com/in/grantwhitfield', 'Sourced the Bluepoch receivable.', '{}'),
 
 -- Tier D: archived. Never queued, never scored for cadence.
 ('11111111-0000-4000-8000-000000000009', 'Hollis', 'Tran', 'Founder', '22222222-0000-4000-8000-000000000009',
  '{3PL}', '{Logistics}', '{Community}',
- 'Elizabeth', 'NJ', 'US', 'us', 'active', now() - interval '400 days',
+ 'Elizabeth', 'NJ', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'D', 'hollis@tranlogistics.com', null,
  'linkedin.com/in/hollistran', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000010', 'Sasha', 'Nolan', 'SVP, Trade Finance', '22222222-0000-4000-8000-000000000010',
  '{Commercial Banker}', '{Factoring and ABL}', '{Referral Partner}',
- 'New York', 'NY', 'US', 'us', 'active', now() - interval '100 days',
+ 'New York', 'NY', 'US', 'active', now() - interval '100 days',
  '33333333-0000-4000-8000-000000000002', (current_date - 100), 'B', 'snolan@meridiantrade.com', '2125550133',
  'linkedin.com/in/sashanolan', null, '{}'),
 
@@ -136,44 +136,44 @@ insert into people (
 -- recoverable, which is exactly what v_never_followed_up is for.
 ('11111111-0000-4000-8000-000000000011', 'Ruben', 'Diaz', 'Director', '22222222-0000-4000-8000-000000000011',
  '{Investment Banker}', '{M&A}', '{Prospect}',
- 'Miami', 'FL', 'US', 'us', 'active', now() - interval '100 days',
+ 'Miami', 'FL', 'US', 'active', now() - interval '100 days',
  '33333333-0000-4000-8000-000000000002', (current_date - 100), 'C', 'rdiaz@diazcapital.com', '3055550176',
  'linkedin.com/in/rubendiaz', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000012', 'Camille', 'Boucher', 'Head of Brand', '22222222-0000-4000-8000-000000000001',
  '{Marketer}', '{CPG,Beauty}', '{Community}',
- 'New York', 'NY', 'US', 'us', 'active', now() - interval '60 days',
+ 'New York', 'NY', 'US', 'active', now() - interval '60 days',
  '33333333-0000-4000-8000-000000000004', (current_date - 60), 'C', 'camille@naturallyny.org', '9175550121',
  'linkedin.com/in/camilleboucher', null, '{}'),
 
 -- do_not_contact: present in the Directory, absent from the queue and exports.
 ('11111111-0000-4000-8000-000000000013', 'Walter', 'Ng', 'President', '22222222-0000-4000-8000-000000000012',
  '{Contract Manufacturer}', '{Manufacturing,Supplements}', '{Counterparty}',
- 'Edison', 'NJ', 'US', 'us', 'active', now() - interval '60 days',
+ 'Edison', 'NJ', 'US', 'active', now() - interval '60 days',
  '33333333-0000-4000-8000-000000000004', (current_date - 60), 'C', 'walter@ngcontract.com', '7325550109',
  'linkedin.com/in/walterng', 'Asked not to be contacted outside of live projects.', '{}'),
 
 ('11111111-0000-4000-8000-000000000014', 'Dana', 'Ferraro', 'Principal', '22222222-0000-4000-8000-000000000013',
  '{Insurance}', '{CPG}', '{Retained Service Provider}',
- 'Staten Island', 'NY', 'US', 'us', 'active', now() - interval '700 days',
+ 'Staten Island', 'NY', 'US', 'active', now() - interval '700 days',
  '33333333-0000-4000-8000-000000000012', null, 'B', 'dana@ferraroins.com', '7185550154',
  'linkedin.com/in/danaferraro', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000015', 'Beatrice', 'Solomon', 'Chief Investment Officer', '22222222-0000-4000-8000-000000000014',
  '{Investor}', '{Structured Finance,Real Estate}', '{Investor In My Business}',
- 'Greenwich', 'CT', 'US', 'us', 'active', now() - interval '1100 days',
+ 'Greenwich', 'CT', 'US', 'active', now() - interval '1100 days',
  '33333333-0000-4000-8000-000000000012', null, 'A', 'bsolomon@solomonfo.com', '2035550190',
  'linkedin.com/in/beatricesolomon', 'Anchor LP. Opened the Meridian door unprompted.', '{}'),
 
 ('11111111-0000-4000-8000-000000000016', 'Jamal', 'Whitaker', 'COO', '22222222-0000-4000-8000-000000000015',
  '{Executive}', '{Logistics}', '{Client}',
- 'Chicago', 'IL', 'US', 'us', 'active', now() - interval '465 days',
+ 'Chicago', 'IL', 'US', 'active', now() - interval '465 days',
  '33333333-0000-4000-8000-000000000003', (current_date - 465), 'A', 'jwhitaker@atlasfreight.com', '3125550147',
  'linkedin.com/in/jamalwhitaker', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000017', 'Rosalind', 'Pike', 'Founding Partner', '22222222-0000-4000-8000-000000000016',
  '{Attorney}', '{Employment,Litigation}', '{Retained Service Provider}',
- 'Boston', 'MA', 'US', 'us', 'active', now() - interval '465 days',
+ 'Boston', 'MA', 'US', 'active', now() - interval '465 days',
  '33333333-0000-4000-8000-000000000003', (current_date - 465), 'C', 'rpike@pikeassoc.com', '6175550172',
  'linkedin.com/in/rosalindpike', null, '{}'),
 
@@ -181,7 +181,7 @@ insert into people (
 -- Geography, which is the point of pausing rather than archiving.
 ('11111111-0000-4000-8000-000000000018', 'Ellis', 'Nakamura', 'CEO', '22222222-0000-4000-8000-000000000017',
  '{Operator}', '{Supplements,DTC}', '{Former Client}',
- 'Los Angeles', 'CA', 'US', 'us', 'active', now() - interval '465 days',
+ 'Los Angeles', 'CA', 'US', 'active', now() - interval '465 days',
  '33333333-0000-4000-8000-000000000003', (current_date - 465), 'C', 'ellis@cadencesupp.com', '3105550163',
  'linkedin.com/in/ellisnakamura', null, '{}'),
 
@@ -189,14 +189,14 @@ insert into people (
 -- is supposed to surface.
 ('11111111-0000-4000-8000-000000000019', 'Tobias', 'Reyes', 'Managing Director', '22222222-0000-4000-8000-000000000018',
  '{Consultant}', '{Government Contracting}', '{Deal Source}',
- 'Washington', 'DC', 'US', 'us', 'active', now() - interval '600 days',
+ 'Washington', 'DC', 'US', 'active', now() - interval '600 days',
  '33333333-0000-4000-8000-000000000010', null, 'C', 'tobias@reyesgov.com', '2025550185',
  'linkedin.com/in/tobiasreyes', null, '{}'),
 
 -- Writes first, and the last thing she sent went unanswered.
 ('11111111-0000-4000-8000-000000000020', 'Margaret', 'Chen', 'Senior Editor', '22222222-0000-4000-8000-000000000019',
  '{Press}', '{CPG,Food and Beverage}', '{Press Contact}',
- 'Los Angeles', 'CA', 'US', 'us', 'active', now() - interval '500 days',
+ 'Los Angeles', 'CA', 'US', 'active', now() - interval '500 days',
  '33333333-0000-4000-8000-000000000011', null, 'C', 'mchen@grocersledger.com', '3235550128',
  'linkedin.com/in/margaretchen', null, '{}');
 
@@ -210,30 +210,30 @@ insert into people (
 insert into people (
   id, first_name, last_name, position, organization_id,
   professional_function, specialties, relationship_to_me,
-  city, state, country, region, contact_status, first_contact_at,
+  city, state, country, contact_status, first_contact_at,
   met_at_source_id, met_on, introduced_by_person_id, tier, email_work, phone_mobile, linkedin_url, tags
 ) values
 ('11111111-0000-4000-8000-000000000003', 'Amanda', 'Kellerman', 'Founder & CEO', '22222222-0000-4000-8000-000000000003',
  '{Operator}', '{CPG,Food and Beverage}', '{Prospect,Deal Source}',
- 'Brooklyn', 'NY', 'US', 'us', 'active', now() - interval '300 days',
+ 'Brooklyn', 'NY', 'US', 'active', now() - interval '300 days',
  '33333333-0000-4000-8000-000000000010', (current_date - 300), '11111111-0000-4000-8000-000000000002',
  'B', 'amanda@kellermanfoods.com', '7185550111', 'linkedin.com/in/amandakellerman', '{}'),
 
 ('11111111-0000-4000-8000-000000000006', 'Priya', 'Raghunathan', 'Managing Partner', '22222222-0000-4000-8000-000000000006',
  '{Accountant}', '{CPG,Tax}', '{Retained Service Provider}',
- 'New York', 'NY', 'US', 'us', 'active', now() - interval '520 days',
+ 'New York', 'NY', 'US', 'active', now() - interval '520 days',
  '33333333-0000-4000-8000-000000000010', (current_date - 520), '11111111-0000-4000-8000-000000000002',
  'B', 'priya@raghunathancpa.com', '2125550159', 'linkedin.com/in/priyaraghunathan', '{}');
 
 insert into people (
   id, first_name, last_name, position, organization_id,
   professional_function, specialties, relationship_to_me,
-  city, state, country, region, contact_status, first_contact_at,
+  city, state, country, contact_status, first_contact_at,
   met_at_source_id, met_on, introduced_by_person_id, tier, email_work, phone_mobile, linkedin_url, tags
 ) values
 ('11111111-0000-4000-8000-000000000004', 'Devon', 'Ruiz', 'Director of Originations', '22222222-0000-4000-8000-000000000004',
  '{Investor}', '{Structured Finance}', '{Counterparty}',
- 'Jersey City', 'NJ', 'US', 'us', 'active', now() - interval '180 days',
+ 'Jersey City', 'NJ', 'US', 'active', now() - interval '180 days',
  '33333333-0000-4000-8000-000000000010', (current_date - 180), '11111111-0000-4000-8000-000000000003',
  'C', 'devon@harborlinecap.com', '2015550137', 'linkedin.com/in/devonruiz', '{}');
 
@@ -246,7 +246,7 @@ insert into people (
 insert into people (
   id, first_name, last_name, position, organization_id,
   professional_function, specialties,
-  city, state, country, region, contact_status,
+  city, state, country, contact_status,
   watchlist_reason, watchlist_source, watchlist_priority, watchlist_added_on,
   introduced_by_person_id, tier, email_work, phone_mobile, linkedin_url, tags
 ) values
@@ -255,7 +255,7 @@ insert into people (
 -- logged below, and the record stays uncontacted.
 ('11111111-0000-4000-8000-000000000021', 'Curtis', 'Alderman', 'Founder', '22222222-0000-4000-8000-000000000020',
  '{Operator}', '{CPG}',
- 'Colorado Springs', 'CO', 'US', 'us', 'uncontacted',
+ 'Colorado Springs', 'CO', 'US', 'uncontacted',
  'Built a $40M shelf-stable brand without outside capital. Wants to buy the co-packer he uses. Exactly the profile for a sale-leaseback.',
  'Podcast', 'high', (current_date - 210),
  null, 'C', null, null, 'linkedin.com/in/curtisalderman', '{}'),
@@ -263,14 +263,14 @@ insert into people (
 -- Warm path exists: Ellis Nakamura referred her.
 ('11111111-0000-4000-8000-000000000022', 'Yolanda', 'Bassett', 'CEO', '22222222-0000-4000-8000-000000000021',
  '{Executive}', '{CPG,Beauty}',
- 'Los Angeles', 'CA', 'US', 'us', 'uncontacted',
+ 'Los Angeles', 'CA', 'US', 'uncontacted',
  'Ellis says she is raising a bridge and hates her current lender. Worth a call the next time I am in LA.',
  'Mentioned By', 'high', (current_date - 45),
  '11111111-0000-4000-8000-000000000018', 'C', null, null, 'linkedin.com/in/yolandabassett', '{}'),
 
 ('11111111-0000-4000-8000-000000000023', 'Henrik', 'Sorensen', 'Head of US Origination', '22222222-0000-4000-8000-000000000022',
  '{Lender}', '{Structured Finance}',
- 'New York', 'NY', 'US', 'us', 'uncontacted',
+ 'New York', 'NY', 'US', 'uncontacted',
  'Nordic is quietly writing US receivables paper. If that is true he is either a counterparty or a competitor and I should know which.',
  'Press', 'medium', (current_date - 120),
  null, 'C', null, null, 'https://www.linkedin.com/in/henriksorensen/', '{}'),
@@ -279,7 +279,7 @@ insert into people (
 -- thin by v_data_quality. Reachable via Marcus Vance, same firm.
 ('11111111-0000-4000-8000-000000000024', 'Simone', 'Achebe', 'Associate', '22222222-0000-4000-8000-000000000005',
  '{Attorney}', '{IP}',
- 'Tampa', 'FL', 'US', 'us', 'uncontacted',
+ 'Tampa', 'FL', 'US', 'uncontacted',
  'Wrote the brand-licensing piece Marcus forwarded. Same firm as Marcus, so an introduction costs nothing.',
  'Research', 'low', (current_date - 300),
  null, 'C', null, null, null, '{}'),
@@ -287,7 +287,7 @@ insert into people (
 -- Phone is the only identifier, which the constraint accepts.
 ('11111111-0000-4000-8000-000000000025', 'Percival', 'Lang', 'Owner', '22222222-0000-4000-8000-000000000023',
  '{Operator}', '{Food and Beverage}',
- 'Chicago', 'IL', 'US', 'us', 'uncontacted',
+ 'Chicago', 'IL', 'US', 'uncontacted',
  'Third-generation regional grocer with no succession plan. Someone will buy that chain and it should be a client of mine when they do.',
  'Research', 'medium', (current_date - 15),
  null, 'C', null, '(312) 555-0193', null, '{}');
@@ -453,7 +453,7 @@ insert into favors (person_id, direction, kind, occurred_on, description) values
 ('11111111-0000-4000-8000-000000000016', 'gave',     'business',    (current_date - 300), 'Signed the Atlas facility.');
 
 -- ---------------------------------------------------------------------------
--- Notes, followups, content, consent
+-- Notes, followups, content
 -- ---------------------------------------------------------------------------
 
 insert into notes (person_id, category, body, is_pinned) values
@@ -481,22 +481,6 @@ insert into content_touches (person_id, content_title, content_ref, sent_on) val
 ('11111111-0000-4000-8000-000000000002', 'Derek On Capital — Where Receivables Break', 'doc-2026-01', (current_date - 45)),
 ('11111111-0000-4000-8000-000000000015', 'Derek On Capital — The Cost Of A Conference', 'doc-2026-02', (current_date - 10)),
 ('11111111-0000-4000-8000-000000000002', 'Derek On Capital — The Cost Of A Conference', 'doc-2026-02', (current_date - 10));
-
-insert into subscriptions (person_id, list_key, status, consent_source, consent_at, consent_evidence) values
-('11111111-0000-4000-8000-000000000001', 'derek_on_capital', 'subscribed', 'verbal_at_event', now() - interval '300 days', 'Asked to be added at Expo East 2025; confirmed by reply email 2025-XX.'),
-('11111111-0000-4000-8000-000000000015', 'derek_on_capital', 'subscribed', 'web_form',        now() - interval '600 days', 'Double opt-in via seakingcapital.com, IP recorded.'),
-('11111111-0000-4000-8000-000000000016', 'derek_on_capital', 'subscribed', 'web_form',        now() - interval '450 days', 'Double opt-in via seakingcapital.com, IP recorded.');
-
-insert into subscriptions (person_id, list_key, status, unsubscribed_at) values
-('11111111-0000-4000-8000-000000000017', 'derek_on_capital', 'unsubscribed', now() - interval '90 days');
-
-insert into subscriptions (person_id, list_key, status) values
-('11111111-0000-4000-8000-000000000005', 'derek_on_capital', 'never_asked');
-
--- Suppression is keyed by address and is independent of person records, so a
--- merge cannot resurrect it.
-insert into suppressions (email, reason) values
-('rdiaz@diazcapital.com', 'Hard bounce, twice.');
 
 -- ---------------------------------------------------------------------------
 -- A job change, applied last so the triggers fire against a complete graph

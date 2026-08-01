@@ -46,8 +46,6 @@ describe('migrations', () => {
       'favors',
       'deals',
       'content_touches',
-      'subscriptions',
-      'suppressions',
       'staging_records',
       'merge_log',
       'sync_state',

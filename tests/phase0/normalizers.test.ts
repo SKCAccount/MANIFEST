@@ -61,8 +61,8 @@ describe('phone normalization to E.164', () => {
 
   it('reports unrecognized values through v_data_quality', async () => {
     const [person] = await h.sql<{ id: string }>(
-      `insert into people (first_name, last_name, contact_status, first_contact_at, phone_office, region)
-       values ('Bad', 'Number', 'active', now(), 'ask reception', 'us')
+      `insert into people (first_name, last_name, contact_status, first_contact_at, phone_office)
+       values ('Bad', 'Number', 'active', now(), 'ask reception')
        returning id;`,
     );
 
@@ -152,8 +152,8 @@ describe('data quality detection', () => {
 
   it('flags an active person with no way to reach them', async () => {
     const [person] = await h.sql<{ id: string }>(
-      `insert into people (first_name, last_name, contact_status, first_contact_at, region)
-       values ('Unreachable', 'Person', 'active', now(), 'us') returning id;`,
+      `insert into people (first_name, last_name, contact_status, first_contact_at)
+       values ('Unreachable', 'Person', 'active', now()) returning id;`,
     );
 
     const rows = await h.sql<{ issue_kind: string }>(

@@ -24,8 +24,8 @@ afterAll(async () => {
 /** Creates a fresh watchlist entry and returns its id. */
 async function addWatchlistEntry(suffix: string): Promise<string> {
   const [row] = await h.sql<{ id: string }>(
-    `insert into people (first_name, last_name, contact_status, watchlist_reason, linkedin_url, city, region)
-     values ('Test', $1, 'uncontacted', 'Worth meeting for the purposes of this test.', $2, 'Denver', 'us')
+    `insert into people (first_name, last_name, contact_status, watchlist_reason, linkedin_url, city)
+     values ('Test', $1, 'uncontacted', 'Worth meeting for the purposes of this test.', $2, 'Denver')
      returning id;`,
     [suffix, `linkedin.com/in/test-${suffix.toLowerCase()}`],
   );

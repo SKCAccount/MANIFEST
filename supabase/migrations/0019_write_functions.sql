@@ -37,7 +37,7 @@ begin
   insert into people (
     first_name, last_name, preferred_name, name_pronunciation, position, organization_id,
     professional_function, specialties, relationship_to_me,
-    city, state, country, region,
+    city, state, country,
     contact_status, first_contact_at,
     met_at_source_id, met_on, introduced_by_person_id, introduced_by_external,
     tier, cadence_days_override,
@@ -47,7 +47,7 @@ begin
   select
     r.first_name, r.last_name, r.preferred_name, r.name_pronunciation, r.position, r.organization_id,
     coalesce(r.professional_function, '{}'), coalesce(r.specialties, '{}'), coalesce(r.relationship_to_me, '{}'),
-    r.city, r.state, r.country, r.region,
+    r.city, r.state, r.country,
     'active', v_occurred,
     r.met_at_source_id, r.met_on, r.introduced_by_person_id, r.introduced_by_external,
     coalesce(r.tier, 'C'), r.cadence_days_override,

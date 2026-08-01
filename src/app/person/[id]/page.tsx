@@ -57,7 +57,6 @@ export default async function PersonPage({ params }: Props) {
     referrer,
     tierHistory,
     affiliations,
-    subscriptions,
     paths,
   } = detail;
 
@@ -404,20 +403,6 @@ export default async function PersonPage({ params }: Props) {
                   <span className="shrink-0 text-xs text-ink-faint">
                     until {formatDate(affiliation.ended_on)}
                   </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {subscriptions.length > 0 ? (
-          <section className="card p-4">
-            <h2 className="label">Mailing list</h2>
-            <ul className="space-y-1 text-sm">
-              {subscriptions.map((subscription) => (
-                <li key={subscription.id} className="flex justify-between gap-2">
-                  <span>{subscription.list_key}</span>
-                  <span className="shrink-0 text-xs text-ink-faint">{subscription.status}</span>
                 </li>
               ))}
             </ul>

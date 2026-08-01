@@ -1,61 +1,14 @@
--- 0009_list_and_machinery.sql
--- Consent and geography are modeled from day one rather than retrofitted, and
--- the import/sync machinery gets its own tables so nothing half-matched ever
+-- 0009_machinery.sql
+-- The import/sync machinery gets its own tables so nothing half-matched ever
 -- lands in `people` by accident.
-
--- ---------------------------------------------------------------------------
--- subscriptions
--- ---------------------------------------------------------------------------
--- Jurisdiction is derived from people.region rather than duplicated here, so
--- there is one place to be wrong about where someone lives.
+--
+-- Bulk-mail machinery is deliberately absent. MANIFEST manages outreach to
+-- people the operator actually knows, one at a time; it is not a mailing-list
+-- tool and holds no subscription, consent or suppression state. Sending is
+-- somebody else's job, and modeling half of it here would invite the other
+-- half.
 
 set search_path = manifest, public, extensions;
-
-create table subscriptions (
-  id                uuid primary key default gen_random_uuid(),
-  person_id         uuid not null references people (id) on delete cascade,
-  list_key          text not null,
-  status            consent_status not null default 'never_asked',
-  consent_source    text,
-  consent_at        timestamptz,
-  consent_evidence  text,
-  unsubscribed_at   timestamptz,
-  created_at        timestamptz not null default now(),
-  updated_at        timestamptz not null default now(),
-
-  constraint subscriptions_list_key_present check (btrim(list_key) <> ''),
-  -- A subscribed record without evidence of consent is not a subscribed record.
-  constraint subscriptions_subscribed_needs_evidence check (
-    status <> 'subscribed'
-    or (consent_at is not null and consent_source is not null and btrim(coalesce(consent_evidence, '')) <> '')
-  ),
-  constraint subscriptions_unsubscribed_has_timestamp check (
-    status <> 'unsubscribed' or unsubscribed_at is not null
-  )
-);
-
-create unique index subscriptions_person_list_key on subscriptions (person_id, list_key);
-create index subscriptions_status_idx on subscriptions (list_key, status);
-
-create trigger trg_subscriptions_updated_at
-  before update on subscriptions
-  for each row execute function fn_touch_updated_at();
-
--- ---------------------------------------------------------------------------
--- suppressions
--- ---------------------------------------------------------------------------
--- Keyed by email, not by person, and deliberately independent of person
--- records: a merge or a delete must not be able to resurrect a suppressed
--- address.
-
-create table suppressions (
-  id         uuid primary key default gen_random_uuid(),
-  email      citext not null unique,
-  reason     text,
-  created_at timestamptz not null default now(),
-
-  constraint suppressions_email_shape check (email::text ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$')
-);
 
 -- ---------------------------------------------------------------------------
 -- staging_records

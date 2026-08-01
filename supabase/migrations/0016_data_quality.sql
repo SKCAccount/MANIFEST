@@ -45,22 +45,6 @@ join taxonomies b
 
 union all
 
--- Region drives mailing-list jurisdiction. Missing it blocks a person from
--- every compliant export.
-select
-  'missing_region',
-  'warning',
-  'person',
-  p.id,
-  p.full_name,
-  'No region set; excluded from consent-gated exports'
-from people p
-where p.contact_status = 'active'
-  and p.archived_at is null
-  and p.region is null
-
-union all
-
 -- No way to reach them at all.
 select
   'missing_contact_info',
