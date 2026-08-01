@@ -87,7 +87,11 @@ async function main() {
     process.exit(1);
   }
 
-  const db = createClient(url, serviceKey, { db: { schema: 'manifest' }, auth: { persistSession: false } });
+  const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|$)/i.test(url);
+  const db = createClient(url, serviceKey, {
+    db: { schema: 'manifest' },
+    auth: { persistSession: false },
+  });
 
   // -------------------------------------------------------------------------
   // 2. Connectivity + schema
@@ -178,7 +182,9 @@ async function main() {
       label: 'Auth user',
       state: 'fail',
       detail: 'no auth users exist',
-      fix: 'Signup is disabled by design. Supabase dashboard → Authentication → Users → Add user, using your own email. Then `npm run bootstrap:owner`.',
+      fix: isLocal
+        ? 'Run `npm run bootstrap:owner` — locally it creates the user for you.'
+        : 'Signup is disabled by design. Supabase dashboard → Authentication → Users → Add user, using your own email. Then `npm run bootstrap:owner`.',
     });
   } else {
     record({

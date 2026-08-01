@@ -13,6 +13,15 @@ Two prerequisites you install once, then four commands.
 Docker Desktop needs WSL2, which needs a reboot and admin rights. This is the
 only part that is genuinely a chore.
 
+**Docker Desktop must be *running*, not merely installed.** `supabase start`
+talks to the daemon, not the binary, and reports
+`docker: command not found` when the daemon is absent — which reads like a PATH
+problem and usually is not. Launch Docker Desktop and wait for its whale icon to
+settle before continuing. If `docker` really is unknown in your terminal after
+installing, reopen the terminal: the installer adds
+`C:\Program Files\Docker\Dockeresourcesin` to PATH, and a shell opened
+beforehand will not have it.
+
 **1. WSL2** — in an *Administrator* PowerShell:
 
 ```powershell
@@ -74,25 +83,26 @@ Everything should be green except the owner, which is the next step.
 
 ## Create yourself and sign in
 
-Local signup is enabled (`config.toml`), so the app can create the user itself —
-no dashboard step. Start the app and request a link:
+```bash
+npm run bootstrap:owner
+```
+
+Against a local stack this creates the auth user *and* registers it in
+`manifest.app_owners` — the table every RLS policy checks. Doing it before you
+first sign in avoids the confusing version of this, where you sign in
+successfully and stare at an empty rolodex.
+
+(Against a hosted project the same command refuses to create the user, because
+signup there is disabled by design and a script quietly undoing that would be
+worse than an extra step.)
 
 ```bash
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000), enter your address, submit. Then
-open the local inbox at **[localhost:54324](http://localhost:54324)** and click
-the link in the message waiting there.
-
-You are now signed in and looking at an **empty** rolodex. That is expected:
-
-```bash
-npm run bootstrap:owner
-```
-
-RLS grants access only to users registered in `manifest.app_owners`, and this is
-what registers you. Reload, and the fixtures appear.
+Open [localhost:3000](http://localhost:3000), enter your address, submit — then
+open **[localhost:54324](http://localhost:54324)** and click the link waiting
+there. It never touches a real inbox.
 
 ---
 
@@ -159,6 +169,8 @@ owner table.
 
 | Symptom | Cause |
 |---|---|
+| `docker: command not found` from `supabase start` | Usually the daemon, not PATH: Docker Desktop is installed but not launched. Start it, wait for the whale to settle, retry. |
+| `docker` unknown in your terminal | Reopen the terminal — the installer's PATH change does not reach shells opened before it. |
 | `supabase start` hangs or errors | Docker Desktop is not running. `docker info` first. |
 | Port already allocated | Something else holds 54321–54324. `npx supabase stop` then start again. |
 | "Not connected to a database yet" on the login page | `.env.local` missing or still placeholder. |
