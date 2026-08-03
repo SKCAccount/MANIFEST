@@ -2,9 +2,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BulkEventLog } from '@/components/bulk-event-log';
 import { SourceForm } from '@/components/source-form';
+import { StageBar, StageLegend } from '@/components/stage-bar';
 import { requireOperator, supabase } from '@/lib/auth';
+import type { SourceMetricsRow } from '@/lib/db/database.types';
+import { HORIZONS } from '@/lib/db/enums';
 import { formatDate, formatMoney, tierTextClass } from '@/lib/format';
-import { getSourceKinds } from '@/lib/queries';
+import { getSourceKinds, getSourceMetrics } from '@/lib/queries';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -39,6 +42,17 @@ export default async function SourcePage({ params }: Props) {
   if (!source) notFound();
 
   const isEvent = kinds.find((k) => k.value === source.kind)?.isEvent ?? false;
+
+  // Present, plus each horizon this event has actually reached. An age it has
+  // not reached is omitted rather than shown empty: a column of dashes invites
+  // the reading that the event produced nothing by then, when the truth is that
+  // "by then" has not happened.
+  const present = isEvent ? await getSourceMetrics(id, null) : null;
+  const matured = isEvent
+    ? (await Promise.all(HORIZONS.map((days) => getSourceMetrics(id, days)))).filter(
+        (row): row is SourceMetricsRow => row !== null && row.is_mature,
+      )
+    : [];
 
   const attendees = (everyone ?? []).map((person) => ({
     id: person.id,
@@ -78,6 +92,137 @@ export default async function SourcePage({ params }: Props) {
           </dl>
         ) : null}
       </header>
+
+      {isEvent && present ? (
+        <section className="mb-8">
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold tracking-wide text-ink-soft uppercase">
+              What it produced
+            </h2>
+            <StageLegend />
+          </div>
+
+          <div className="card p-4">
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <StageBar
+                  counts={{
+                    card: present.stage_card,
+                    contact: present.stage_contact,
+                    active: present.stage_active,
+                    producing: present.stage_producing,
+                  }}
+                  label={source.display_name}
+                />
+              </div>
+              <span className="shrink-0 font-mono text-xs text-ink-faint">
+                {present.active_or_better}/{present.new_contacts}
+              </span>
+            </div>
+
+            {/* The ladder as it stood at each age this event has reached.
+                Reading left to right is how the room actually developed —
+                which is the question a retro is trying to answer, and one that
+                a single present-day number cannot express. */}
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[26rem] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-line text-left">
+                    <th scope="col" className="py-1.5 pr-3 text-xs font-medium text-ink-faint">
+                      Measured at
+                    </th>
+                    {matured.map((row) => (
+                      <th
+                        key={row.horizon_days}
+                        scope="col"
+                        className="py-1.5 pr-3 text-right text-xs font-medium text-ink-faint"
+                      >
+                        {row.horizon_days! >= 365 ? `${row.horizon_days! / 365} yr` : `${row.horizon_days} d`}
+                      </th>
+                    ))}
+                    <th scope="col" className="py-1.5 text-right text-xs font-medium">
+                      Today
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <MetricRow
+                    label="New contacts"
+                    columns={matured}
+                    present={present}
+                    read={(row) => String(row.new_contacts)}
+                  />
+                  <MetricRow
+                    label="Active or better"
+                    columns={matured}
+                    present={present}
+                    read={(row) => String(row.active_or_better)}
+                  />
+                  <MetricRow
+                    label="Producing"
+                    columns={matured}
+                    present={present}
+                    read={(row) => String(row.stage_producing)}
+                  />
+                  <MetricRow
+                    label="Tier A/B"
+                    columns={matured}
+                    present={present}
+                    read={(row) => String(row.tier_ab_contacts)}
+                  />
+                  <MetricRow
+                    label="Cost per contact"
+                    columns={matured}
+                    present={present}
+                    read={(row) => formatMoney(row.cost_per_new_contact_cents)}
+                  />
+                  <MetricRow
+                    label="Cost per active"
+                    columns={matured}
+                    present={present}
+                    emphasis
+                    read={(row) => formatMoney(row.cost_per_active_or_better_cents)}
+                  />
+                  <MetricRow
+                    label="Deals funded"
+                    columns={matured}
+                    present={present}
+                    read={(row) =>
+                      row.deals_sourced === 0
+                        ? '—'
+                        : `${row.deals_funded}/${row.deals_sourced}`
+                    }
+                  />
+                  <MetricRow
+                    label="Return"
+                    columns={matured}
+                    present={present}
+                    read={(row) => (row.return_multiple === null ? '—' : `${row.return_multiple}×`)}
+                  />
+                </tbody>
+              </table>
+            </div>
+
+            <p className="mt-3 text-xs text-ink-faint">
+              Cost per active is what the Sources ranking sorts on. Cost per contact is shown
+              because it is the number most people reach for, and it is flattered by collecting
+              business cards — an event where nobody stayed in touch would win on it.
+              {present.relationships_touched > present.new_contacts
+                ? ` ${present.relationships_touched} existing relationships were also seen here; they are counted separately and never fold into these ratios.`
+                : ''}
+            </p>
+          </div>
+
+          {source.retro_note ? (
+            <div className="card mt-3 p-4">
+              <h3 className="text-xs font-medium tracking-wide text-ink-faint uppercase">
+                Retro
+              </h3>
+              <p className="mt-1 text-sm">{source.retro_note}</p>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {isEvent ? (
         <section className="mb-8">
@@ -140,6 +285,43 @@ export default async function SourcePage({ params }: Props) {
         />
       </section>
     </main>
+  );
+}
+
+function MetricRow({
+  label,
+  columns,
+  present,
+  read,
+  emphasis = false,
+}: {
+  label: string;
+  columns: SourceMetricsRow[];
+  present: SourceMetricsRow;
+  read: (row: SourceMetricsRow) => string;
+  emphasis?: boolean;
+}) {
+  return (
+    <tr className="border-b border-line-soft last:border-0">
+      <th scope="row" className={`py-1.5 pr-3 text-left font-normal ${emphasis ? 'font-medium' : ''}`}>
+        {label}
+      </th>
+      {columns.map((row) => (
+        <td
+          key={row.horizon_days}
+          className="py-1.5 pr-3 text-right font-mono text-xs text-ink-soft tabular-nums"
+        >
+          {read(row)}
+        </td>
+      ))}
+      <td
+        className={`py-1.5 text-right font-mono text-xs tabular-nums ${
+          emphasis ? 'font-medium text-ink' : 'text-ink'
+        }`}
+      >
+        {read(present)}
+      </td>
+    </tr>
   );
 }
 

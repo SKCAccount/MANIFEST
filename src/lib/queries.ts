@@ -16,7 +16,10 @@ import type {
   PathToRow,
   QueueRow,
   ReviewQueueRow,
+  SourceCohortRow,
+  SourceMetricsRow,
   SourceRoiRow,
+  SourceSeriesRow,
   SyncRunsRow,
   SyncStatusRow,
   WatchlistRow,
@@ -355,6 +358,53 @@ export async function getSourceById(id: string) {
   const { data, error } = await db.from('sources').select('*').eq('id', id).maybeSingle();
   if (error) throw new Error(error.message);
   return data;
+}
+
+/**
+ * Every event measured at the same age.
+ *
+ * The whole point of the cohort view: a two-year-old conference has had two
+ * years to produce and a six-month-old one has not, so comparing them at
+ * today's date systematically rewards whichever is older. `v_source_cohort`
+ * resolves every input — touchpoints, deals, and tier state — as of
+ * `occurred_on + horizon`, and omits any event not yet that old rather than
+ * scoring it against ones that are.
+ */
+export async function getSourceCohort(horizonDays: number): Promise<SourceCohortRow[]> {
+  const db = await supabase();
+  const { data, error } = await db
+    .from('v_source_cohort')
+    .select('*')
+    .eq('horizon_days', horizonDays);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SourceCohortRow[];
+}
+
+/** One row per distinct event_name — the series key is the name, so there is none to maintain. */
+export async function getSourceSeries(): Promise<SourceSeriesRow[]> {
+  const db = await supabase();
+  const { data, error } = await db.from('v_source_series').select('*').order('event_name');
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SourceSeriesRow[];
+}
+
+/**
+ * The ladder for one source, at present or at a fixed age.
+ *
+ * Called once per horizon on the detail screen. `fn_source_metrics` is a table
+ * function, so PostgREST returns an array of one row.
+ */
+export async function getSourceMetrics(
+  sourceId: string,
+  horizonDays: number | null,
+): Promise<SourceMetricsRow | null> {
+  const db = await supabase();
+  const { data, error } = await db.rpc('fn_source_metrics', {
+    p_source_id: sourceId,
+    p_horizon_days: horizonDays,
+  });
+  if (error) throw new Error(error.message);
+  return ((data as SourceMetricsRow[] | null) ?? [])[0] ?? null;
 }
 
 /** Name lookup for the referred-by combobox and bulk event attendee picker. */

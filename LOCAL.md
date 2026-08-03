@@ -161,6 +161,21 @@ one more — the correction that turns Henrik Sorensen's outbound-only day into 
 two-way exchange and promotes him off the watchlist. That sequence is the whole
 of Phase 2 in miniature, and it is what `/sync` and `/review` are for.
 
+## Reading a page from the terminal
+
+Every screen is behind auth, so `curl` gets a redirect to the login page. When
+you want the rendered HTML — checking what a server component actually produced,
+without a browser — mint a session first:
+
+```bash
+COOKIE=$(npx tsx --env-file-if-exists=.env.local scripts/dev-session.ts)
+curl -s -H "Cookie: $COOKIE" http://localhost:3000/sources
+```
+
+It sets a password on the local auth user and signs in with it, so it refuses to
+run against anything but a local URL. The cookie names come from driving the same
+`@supabase/ssr` client the app uses rather than from guessing at its storage key.
+
 ## Clearing the demo data
 
 The 25 fixtures are invented people. Before you enter a real relationship:
@@ -213,7 +228,7 @@ owner table.
 | Sync refuses to start | `MANIFEST_OWN_DOMAINS` is unset. It is the one setting sync will not run without. |
 | `/sync` shows a fixture banner | Expected locally. No `GOOGLE_CLIENT_ID`, so it is replaying canned mail rather than reading a mailbox. |
 
-`npm run ci` needs none of this and passes on its own — 317 tests against an
+`npm run ci` needs none of this and passes on its own — 324 tests against an
 in-process Postgres, including the whole Phase 2 pipeline against the fixture
 provider. If CI is green and the local stack misbehaves, the difference is
 configuration, not logic.

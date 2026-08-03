@@ -31,6 +31,25 @@
   --color-ok: oklch(0.52 0.11 155);
   --color-warn: oklch(0.58 0.13 75);
 
+  /*
+   * The development ladder — Card → Contact → Active → Producing.
+   *
+   * Ordinal, not categorical: swapping two of these changes what they mean, so
+   * they take one hue in monotone lightness steps rather than four separate
+   * hues. The order is then visible in the colour itself, and someone who
+   * cannot distinguish the hues still reads the ladder from the lightness.
+   *
+   * Four steps of the same blue, each ≥0.06 apart in L, with the end nearest
+   * the surface still clearing 2:1 against it. Not eyeballed — checked.
+   */
+  --color-stage-1: #86b6ef; /* card */
+  --color-stage-2: #5598e7; /* contact */
+  --color-stage-3: #2a78d6; /* active */
+  --color-stage-4: #184f95; /* producing */
+
+  /* One series over time: every column takes this, never coloured by value. */
+  --color-series: #2a78d6;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
@@ -56,6 +75,22 @@
     --color-overdue: oklch(0.73 0.15 28);
     --color-ok: oklch(0.72 0.11 155);
     --color-warn: oklch(0.78 0.12 75);
+
+    /*
+     * Chosen for dark, not flipped into it.
+     *
+     * The same four steps, anchored the other way round: on a dark surface the
+     * darkest blue is the one that disappears, so Card takes it and Producing
+     * takes the brightest. The perceptual reading is preserved — further along
+     * the ladder is still more prominent — while the step nearest the surface
+     * clears 2:1 against this background rather than against white.
+     */
+    --color-stage-1: #184f95;
+    --color-stage-2: #2a78d6;
+    --color-stage-3: #5598e7;
+    --color-stage-4: #86b6ef;
+
+    --color-series: #5598e7;
   }
 }
 

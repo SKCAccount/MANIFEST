@@ -196,6 +196,7 @@ can judge:
 | Directory: a function + a specialty | Does the two-dimensional answer actually match who you would name? |
 | Geography: a city you are travelling to | Is the warm-path suggestion someone you would really ask? |
 | Log an attempt on a watchlist entry | Confirm they stay on the watchlist and out of the Directory. |
+| Sources, then switch the measurement age | Does the ranking change? If an event you rate highly only leads at "Present", it is being flattered by having happened longer ago. |
 
 ## 11. Connect Gmail and Calendar
 
@@ -266,5 +267,5 @@ owner registration and fixture state, and prints the next action for each.
 | A synced day looks wrong | The summary comes from the subject line and Gmail's ~200-character snippet — the body is never fetched. Use "Open in Gmail" on the timeline entry. |
 
 Before reporting a bug in the app, `npm run ci` confirms the schema and logic
-are sound locally (317 tests, migrations applied to an empty database). If CI is
+are sound locally (324 tests, migrations applied to an empty database). If CI is
 green and the deployed instance misbehaves, the difference is configuration.

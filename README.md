@@ -10,9 +10,9 @@ Everything here is addressed to one person at a time. There is no subscription s
 
 ## Status
 
-**Phase 0 (Foundation), Phase 1 (The rolodex) and Phase 2 (Sync) are complete and verified.** Nothing is deployed: there is no hosted project yet, and the schema has only ever been applied locally and to the test harness.
+**Phases 0–3 are complete and verified.** Nothing is deployed: there is no hosted project yet, and the schema has only ever been applied locally and to the test harness.
 
-Phase 1 is a shippable product on its own: fully usable by hand, with zero integrations. Phase 2 adds Gmail and Calendar without changing that — sync writes touchpoints and never creates a person.
+Phase 1 is a shippable product on its own: fully usable by hand, with zero integrations. Phase 2 adds Gmail and Calendar without changing that — sync writes touchpoints and never creates a person. Phase 3 added no schema at all: the event economics were being recorded from Phase 0, and what was missing was a screen honest enough to show them.
 
 | | |
 |---|---|
@@ -24,11 +24,11 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 | Screens | 14, plus the login and offline pages — queue, person, directory, watchlist, geography, rolodex, sources, review, sync |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
 | Schema | `manifest` — one schema per system on a shared database |
-| Tests | 317 passing |
+| Tests | 324 passing |
 
 **Phase 2 runs against fixtures.** There are no Google credentials for this project yet, so sync is complete but has never spoken to Google. Everything above the transport — matching, direction, rollup, promotion, idempotency, correction, staging — is real code exercised end to end by `npm run ci`; the live HTTP client is written and unexercised. See [§ Sync, without Google](#sync-without-google).
 
-**What is left.** Phase 3 is event economics on the Sources screen — the data behind it is already being recorded. Phase 4, as this repository described it, was a consent-gated export to a mailing platform; that is now out of scope rather than pending, so unless something else is added it is void. Neither has been started.
+**What is left.** Phase 4, as this repository described it, was a consent-gated export to a mailing platform; that is now out of scope rather than pending, so unless something else is added it is void. Nothing else is outstanding.
 
 ```bash
 npm install
@@ -99,12 +99,14 @@ tests/
   phase0/           schema acceptance
   phase1/           validation units + Phase 1 acceptance
   phase2/           classification units + Gmail and Calendar acceptance
+  phase3/           the event ranking, and why it is not cost per contact
   unit/
 scripts/
   doctor.ts             names whatever is missing from your setup
   bootstrap-owner.ts    creates the auth user and registers it in app_owners
   fixtures.ts           load / clear the 25 demo people
   sync.ts               runs a sync channel from the terminal
+  dev-session.ts        a signed-in cookie, so a page can be read with curl (local only)
   verify-migrations.ts  applies every migration to a throwaway database
 ```
 
@@ -204,6 +206,18 @@ This forced a change to `touchpoints_external_key`, which is now narrowed to `su
 
 **`sync_messages` uses one `NULLS NOT DISTINCT` unique index, not two partial ones.** The partial pair was the first shape, and it worked against the PGlite test adapter and failed against real PostgREST — an upsert can only infer its arbiter from a *total* unique index. That is exactly the drift the two store adapters exist to risk, and it was caught by running the thing rather than by a test. One total index keeps both write paths honest.
 
+### Phase 3
+
+**The ranking sorts on cost per Active-or-better, not cost per contact.** Cost per contact is the number most people reach for, it is a leading indicator, and it is trivially flattered by collecting business cards — an event where forty people were met and nobody stayed in touch would top that ranking having produced nothing. Both are computed and both are shown; only one decides the order. The two rankings genuinely disagree on the fixture data, which is asserted rather than claimed (`tests/phase3/ranking.test.ts`).
+
+**An event with no ratio yet sorts last, not first.** Null means either no cost recorded or nobody has reached Active. Sorted naively, null becomes a small number and a list headed "cheapest per relationship" opens with every event that produced no relationships.
+
+**Nothing is compared across ages.** At a selected horizon, an event younger than it is moved below the fold with how long until it can be compared, rather than being scored against mature ones. On the fixture data this is visible rather than theoretical: at present Expo East leads at $1,700 per active relationship, and at a matched 365 days Broker Fest 2025 leads at $1,300. The ranking inverts, which is the entire reason the mechanism exists.
+
+**The ladder reads left to right on the detail screen.** Expo East at 180 days was a $6,800-per-relationship event and by a year it was $1,700 — the same room, measured twice. A single present-day number cannot say that, and "was this worth going to" is usually a question about development rather than about today. Horizons the event has not reached are omitted rather than shown empty, since a column of dashes reads as "produced nothing by then" when the truth is that "then" has not happened.
+
+**The stage ladder is coloured as ordinal, not categorical.** Card → Contact → Active → Producing is ordered — swapping two changes the meaning — so it takes one hue in four lightness steps rather than four hues. The order becomes visible in the colour, and the lightness carries it for anyone who cannot separate the hues. The dark-mode ramp is anchored the other way round rather than flipped, because on a dark surface it is the darkest step that disappears. Both ramps were checked against the surface they sit on, not eyeballed.
+
 ### Namespacing
 
 **MANIFEST owns the `manifest` schema, not `public`.** This database is intended to host Kraken, Plunder, Harpoon, Deepwatch and MANIFEST side by side. Most of MANIFEST's 17 tables and 15 enums carry names another business system would plausibly want — `people`, `organizations`, `notes`, `sources`, `deals`, and the `tier` and `deal_stage` enums among them. Table collisions are a merge conflict; **enum collisions are worse**, because Postgres types are schema-scoped and there is no way for two systems to both define `tier` in `public`. So each system owns a schema, `public` holds only the shared extensions, and `tests/phase0/namespacing.test.ts` fails if anything leaks back. Authorization is per-system too: `manifest.app_owners` decides who reads the rolodex, so shared auth across systems does not imply shared access.
@@ -263,3 +277,16 @@ Each is asserted by a test in `tests/phase2/`, running the shipping `runGmailSyn
 - [x] `MANIFEST_OWN_DOMAINS` unset stops the run rather than inverting every direction
 
 Not asserted, and not assertable here: that Google's real responses match the shapes `live.ts` expects.
+
+### Phase 3 — Event economics
+
+The horizon mechanism is asserted in `tests/phase0/horizons.test.ts` (written with Phase 0's schema, since that is where it lives); the ranking built on top of it is in `tests/phase3/`:
+
+- [x] Every metric computes at a fixed age as well as at present
+- [x] Tier resolves from `tier_history`, so promoting someone today cannot move a day-90 figure
+- [x] An event younger than the horizon is excluded from the cohort entirely
+- [x] Two events invert their ranking between day 90 and the present
+- [x] Relationships touched are counted separately and never fold into a new-contact denominator
+- [x] A series rolls up across years by event name alone
+- [x] Ranking sorts on cost per Active-or-better; an event with no ratio yet sorts last
+- [x] The two candidate rankings disagree on the fixture data, so the choice is load-bearing
