@@ -82,6 +82,7 @@ export const STAGING_KIND_VALUES = [
   'dedupe_candidate',
   'job_change',
   'gmail_suggestion',
+  'calendar_suggestion',
   'linkedin_connection',
 ] as const;
 export type StagingKind = (typeof STAGING_KIND_VALUES)[number];
@@ -114,6 +115,23 @@ export const TIER_CADENCE_DAYS: Record<Tier, number | null> = {
 
 /** Queue score multipliers. Mirrors fn_tier_weight. */
 export const TIER_WEIGHT: Record<Tier, number> = { A: 3.0, B: 1.6, C: 1.0, D: 0 };
+
+/**
+ * Sync channels. Not a Postgres enum — `sync_state.channel` and
+ * `sync_runs.channel` are plain text so a future channel is a row rather than a
+ * migration — but the two that exist are closed from the application's side,
+ * and v_sync_status lists them literally. Keeping the pair here means the
+ * status screen and the cron routes cannot disagree about what a channel is
+ * called.
+ */
+export const SYNC_CHANNELS = ['gmail', 'gcal'] as const;
+export type SyncChannel = (typeof SYNC_CHANNELS)[number];
+
+/** Which touch_source each channel writes. */
+export const CHANNEL_SOURCE: Record<SyncChannel, TouchSource> = {
+  gmail: 'gmail',
+  gcal: 'gcal',
+};
 
 /** The horizons the events screen offers, alongside "present". */
 export const HORIZONS = [90, 180, 365, 730] as const;

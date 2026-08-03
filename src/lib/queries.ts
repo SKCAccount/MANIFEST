@@ -11,10 +11,14 @@ import type {
   DataQualityRow,
   DirectoryRow,
   GeographyRow,
+  GoogleCredentialsRow,
   NeverFollowedUpRow,
   PathToRow,
   QueueRow,
+  ReviewQueueRow,
   SourceRoiRow,
+  SyncRunsRow,
+  SyncStatusRow,
   WatchlistRow,
 } from './db/database.types';
 import type { ContactStatus, Tier } from './db/enums';
@@ -374,4 +378,73 @@ export async function getDataQuality(): Promise<DataQualityRow[]> {
   const { data, error } = await db.from('v_data_quality').select('*').limit(200);
   if (error) throw new Error(error.message);
   return (data ?? []) as DataQualityRow[];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 — sync
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything sync could not resolve, oldest first.
+ *
+ * Oldest first because the queue is worked to empty rather than skimmed: an
+ * item that keeps getting passed over is the one most likely to be a real
+ * person the operator has been meaning to add.
+ */
+export async function getReviewQueue(limit = 100): Promise<ReviewQueueRow[]> {
+  const db = await supabase();
+  const { data, error } = await db
+    .from('v_review_queue')
+    .select('*')
+    .order('created_at', { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ReviewQueueRow[];
+}
+
+export async function getReviewQueueDepth(): Promise<number> {
+  const db = await supabase();
+  const { count, error } = await db.from('v_review_queue').select('id', { head: true, count: 'exact' });
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+/** One row per channel whether or not it has ever run — see v_sync_status. */
+export async function getSyncStatus(): Promise<SyncStatusRow[]> {
+  const db = await supabase();
+  const { data, error } = await db.from('v_sync_status').select('*').order('channel');
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SyncStatusRow[];
+}
+
+export async function getRecentSyncRuns(limit = 12): Promise<SyncRunsRow[]> {
+  const db = await supabase();
+  const { data, error } = await db
+    .from('sync_runs')
+    .select('*')
+    .order('started_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SyncRunsRow[];
+}
+
+/**
+ * The connected Google account, or null.
+ *
+ * `select *` would fail here, and deliberately: migration 0020 withholds the
+ * token columns from `authenticated`, so this names the metadata columns it is
+ * allowed to see. There is no query this page can make that returns the
+ * refresh token.
+ */
+export async function getGoogleConnection(): Promise<GoogleCredentialsRow | null> {
+  const db = await supabase();
+  const { data, error } = await db
+    .from('google_credentials')
+    .select(
+      'id, account_email, scopes, connected_at, revoked_at, last_refresh_at, last_refresh_error, access_token_expires_at, created_at, updated_at',
+    )
+    .is('revoked_at', null)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data ?? null) as GoogleCredentialsRow | null;
 }

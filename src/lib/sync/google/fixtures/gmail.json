@@ -1,0 +1,139 @@
+{
+  "_readme": [
+    "Canned Gmail payloads, replayed by fixture.ts when no Google credentials are configured.",
+    "",
+    "Each entry in `batches` is one call to listMessages: the first call returns batch 0 and",
+    "the cursor '1', the next returns batch 1, and so on. That is what makes the supersede",
+    "case reachable — a thread whose reply arrives in a later batch is the same thread-day",
+    "seen twice, which is exactly what happens when cron runs twice in an afternoon.",
+    "",
+    "Times are UTC and deliberately kept between 13:00 and 22:00. The operator's day boundary",
+    "is America/New_York (fn_local_date), and within that band the UTC date and the New York",
+    "date always agree, so a fixture written for 'day offset -5' lands on the same local day",
+    "whatever the season. Times outside that band would drift across the boundary with DST",
+    "and make the rollup assertions seasonal.",
+    "",
+    "Addresses ending seakingcapital.com are the operator's own (MANIFEST_OWN_DOMAINS).",
+    "The rest are either seed fixtures from supabase/seed.sql or invented strangers."
+  ],
+
+  "operator": "derek@seakingcapital.com",
+
+  "batches": [
+    [
+      {
+        "_case": "Outbound to someone already on the watchlist under a different identifier. Curtis is on file via LinkedIn with no email, so this address matches nobody and becomes a review item — whose display name trigram-matches him, which is the whole point of the suggested-match column.",
+        "id": "m-out-curtis",
+        "threadId": "t-curtis",
+        "dayOffset": -6,
+        "time": "15:04",
+        "subject": "Sale-leaseback on the co-packer",
+        "snippet": "Curtis — following up on the podcast. If you are still looking at buying the co-packer, there is a structure worth ten minutes.",
+        "from": "Derek Goldstein <derek@seakingcapital.com>",
+        "to": "Curtis Alderman <curtis@aldermanprovisions.com>",
+        "labelIds": ["SENT"]
+      },
+      {
+        "_case": "Outbound to a watchlist entry that DOES have an email. Must write a touchpoint and must NOT promote — the record stays uncontacted until batch 1.",
+        "id": "m-out-henrik",
+        "threadId": "t-henrik",
+        "dayOffset": -5,
+        "time": "13:12",
+        "subject": "US receivables paper",
+        "snippet": "Henrik — saw the Nordic piece in Trade Finance Weekly. Are you writing US receivables directly or through a partner bank?",
+        "from": "Derek Goldstein <derek@seakingcapital.com>",
+        "to": "Henrik Sorensen <henrik@nordictradefin.com>",
+        "labelIds": ["SENT"]
+      },
+      {
+        "_case": "Inbound from an existing active person. Ordinary case.",
+        "id": "m-in-adrienne",
+        "threadId": "t-adrienne",
+        "dayOffset": -2,
+        "time": "14:31",
+        "subject": "Expo East booth share for next year",
+        "snippet": "Are you in for the booth share again? I need to commit by the end of the month and I would rather split it with you than with the brand that did it last year.",
+        "from": "Adrienne DeLisio <adrienne@naturallyny.org>",
+        "to": "derek@seakingcapital.com",
+        "labelIds": ["INBOX", "CATEGORY_PERSONAL"]
+      },
+      {
+        "_case": "Same thread as the message above, but the next day. Must produce a SECOND touchpoint, not a correction to the first — proving the rollup unit is the day, not the thread.",
+        "id": "m-out-adrienne",
+        "threadId": "t-adrienne",
+        "dayOffset": -1,
+        "time": "13:47",
+        "subject": "Re: Expo East booth share for next year",
+        "snippet": "In. Same split as last year works. I will send the deposit this week.",
+        "from": "Derek Goldstein <derek@seakingcapital.com>",
+        "to": "Adrienne DeLisio <adrienne@naturallyny.org>",
+        "labelIds": ["SENT"]
+      },
+      {
+        "_case": "Automated sender. Must be skipped before it can become a review item — a rolodex that accumulates noreply@ addresses is a rolodex nobody works.",
+        "id": "m-noreply",
+        "threadId": "t-noreply",
+        "dayOffset": -3,
+        "time": "16:02",
+        "subject": "Your receipt from Stripe",
+        "snippet": "Receipt for your subscription. This message was sent from an unmonitored address.",
+        "from": "Stripe <noreply@stripe.com>",
+        "to": "derek@seakingcapital.com",
+        "labelIds": ["INBOX", "CATEGORY_UPDATES"]
+      },
+      {
+        "_case": "Real human sender, but Gmail already filed it as marketing. Skipped on the label, not on the address.",
+        "id": "m-promo",
+        "threadId": "t-promo",
+        "dayOffset": -3,
+        "time": "17:20",
+        "subject": "Last chance: Trade Finance Summit early bird",
+        "snippet": "Rates go up Friday. Reserve your seat at the industry's largest gathering of receivables professionals.",
+        "from": "Talia Brandt <talia@tradefinancesummit.com>",
+        "to": "derek@seakingcapital.com",
+        "labelIds": ["INBOX", "CATEGORY_PROMOTIONS"]
+      },
+      {
+        "_case": "Operator to operator. No external party, so nothing to record.",
+        "id": "m-internal",
+        "threadId": "t-internal",
+        "dayOffset": -2,
+        "time": "18:15",
+        "subject": "Q3 wire schedule",
+        "snippet": "Attached. Let me know if the Thursday cutoff still works.",
+        "from": "Derek Goldstein <derek@seakingcapital.com>",
+        "to": "ops@seakingcapital.com, accounting@seakingcapital.com",
+        "labelIds": ["SENT"]
+      },
+      {
+        "_case": "Nine external recipients on one outbound message. Above MAX_EXTERNAL_RECIPIENTS, so it reads as an announcement and writes nothing. Without this guard, one office-move email would create nine touchpoints and nine review items.",
+        "id": "m-blast",
+        "threadId": "t-blast",
+        "dayOffset": -4,
+        "time": "14:00",
+        "subject": "New office address",
+        "snippet": "We have moved. New address below; nothing else changes.",
+        "from": "Derek Goldstein <derek@seakingcapital.com>",
+        "to": "a@ex1.com, b@ex2.com, c@ex3.com, d@ex4.com, e@ex5.com, f@ex6.com, g@ex7.com, h@ex8.com, i@ex9.com",
+        "labelIds": ["SENT"]
+      }
+    ],
+
+    [
+      {
+        "_case": "THE central case. Henrik replies on the same local day as the outbound message in batch 0. The thread-day is recomputed as mutual, a superseding touchpoint is written, and trg_first_contact promotes him from uncontacted to active. An operator's own unanswered effort promotes nobody; a reply does.",
+        "id": "m-in-henrik",
+        "threadId": "t-henrik",
+        "dayOffset": -5,
+        "time": "20:40",
+        "subject": "Re: US receivables paper",
+        "snippet": "Directly, through a New York branch as of March. Happy to compare notes — I am in New York the week of the 14th if you want to get a coffee.",
+        "from": "Henrik Sorensen <henrik@nordictradefin.com>",
+        "to": "derek@seakingcapital.com",
+        "labelIds": ["INBOX", "CATEGORY_PERSONAL"]
+      }
+    ],
+
+    []
+  ]
+}

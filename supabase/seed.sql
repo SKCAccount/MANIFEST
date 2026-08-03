@@ -273,7 +273,11 @@ insert into people (
  'New York', 'NY', 'US', 'uncontacted',
  'Nordic is quietly writing US receivables paper. If that is true he is either a counterparty or a competitor and I should know which.',
  'Press', 'medium', (current_date - 120),
- null, 'C', null, null, 'https://www.linkedin.com/in/henriksorensen/', '{}'),
+ -- The only watchlist entry with an email on file: it was on the press release
+ -- he turned up in. This is what lets the Phase 2 fixtures demonstrate the
+ -- central rule end to end — an outbound note to this address promotes nothing,
+ -- and his reply promotes him.
+ null, 'C', 'henrik@nordictradefin.com', null, 'https://www.linkedin.com/in/henriksorensen/', '{}'),
 
 -- Organization is the only identifier. Deliberately allowed, and flagged as
 -- thin by v_data_quality. Reachable via Marcus Vance, same firm.

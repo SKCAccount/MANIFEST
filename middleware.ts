@@ -9,7 +9,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/auth/callback', '/auth/signout'];
+/**
+ * `/api/cron` is public to the middleware and not to the internet.
+ *
+ * Cron has no session to refresh and no cookie to carry, so requiring one here
+ * would mean the scheduled runs could never fire. The route authenticates
+ * itself instead, with a constant-time comparison against CRON_SECRET, and
+ * refuses everything when that variable is unset.
+ */
+const PUBLIC_PATHS = ['/login', '/auth/callback', '/auth/signout', '/api/cron'];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -3,8 +3,10 @@
 **Want it fully local instead?** [LOCAL.md](LOCAL.md) — Docker, whole stack on
 your machine, magic links caught in a local inbox. Better for testing.
 
-Ten steps, about fifteen minutes. `npm run doctor` checks your progress at any
-point and tells you what is missing — run it whenever you are unsure.
+Eleven steps, about twenty minutes — the last one connects Gmail and Calendar
+and is deliberately left until after you have entered real relationships.
+`npm run doctor` checks your progress at any point and tells you what is
+missing — run it whenever you are unsure.
 
 There is no Docker requirement. The test suite runs against an in-process
 Postgres; this guide is for the real instance you will actually use.
@@ -40,16 +42,30 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 MANIFEST_OWNER_EMAIL=derek@seakingcapital.com
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+MANIFEST_OWN_DOMAINS=seakingcapital.com
+CRON_SECRET=<any long random string>
 ```
 
+`MANIFEST_OWN_DOMAINS` is required before sync will run at all — it is how sync
+tells which side of a thread is you, and therefore which touchpoints are
+inbound. Inbound promotes a watchlist entry to an active relationship, so with
+this empty the entire watchlist would promote on your own unanswered mail, and
+an active record can never be returned to the watchlist. Sync refuses to start
+rather than degrade.
+
 `ANTHROPIC_API_KEY` is optional. Without it quick capture falls back to the
-manual form and everything else works unchanged.
+manual form and synced touchpoints keep their subject line instead of a summary.
+
+The `GOOGLE_*` variables are optional. Leave them empty and sync replays the
+fixtures in `src/lib/sync/google/fixtures/` instead of reading a real mailbox —
+useful for confirming the screens work before going through Google's OAuth
+verification. See step 11.
 
 `.env.local` is gitignored. The `service_role` key bypasses row-level security —
 it belongs in that file and nowhere else.
 
 ```bash
-npm run doctor      # should show the four env vars green, schema missing
+npm run doctor      # should show the env vars green, schema missing
 ```
 
 ## 3. Expose the `manifest` schema
@@ -79,7 +95,7 @@ npx supabase link --project-ref <ref>     # the ref is in your project URL
 npm run db:push
 ```
 
-`db:push` applies migrations `0001`–`0019`. It does **not** load the fixtures —
+`db:push` applies migrations `0001`–`0022`. It does **not** load the fixtures —
 `seed.sql` is deliberately separate, so a production push can never insert
 invented people.
 
@@ -181,6 +197,50 @@ can judge:
 | Geography: a city you are travelling to | Is the warm-path suggestion someone you would really ask? |
 | Log an attempt on a watchlist entry | Confirm they stay on the watchlist and out of the Directory. |
 
+## 11. Connect Gmail and Calendar
+
+Do this **after** step 10, not before. Sync is worth far more against a rolodex
+that already knows thirty people: every address it recognises becomes a
+touchpoint, and every one it does not becomes a review item. Connect it to an
+empty database and essentially all of your mail lands in the review queue.
+
+In the [Google Cloud console](https://console.cloud.google.com/apis/credentials):
+
+1. Create an OAuth 2.0 Client ID, type **Web application**.
+2. Add `https://<your-domain>/api/google/callback` as an authorised redirect URI
+   (and `http://localhost:3000/api/google/callback` for local work).
+3. Enable the **Gmail API** and the **Google Calendar API**.
+4. On the consent screen, add the scopes `gmail.readonly` and
+   `calendar.readonly`. MANIFEST never writes to Google and asks for nothing
+   else.
+
+Then fill in `.env.local` and connect:
+
+```
+GOOGLE_CLIENT_ID=<client id>
+GOOGLE_CLIENT_SECRET=<client secret>
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/callback
+```
+
+Open `/sync` and press **Connect Google**. The fixture banner disappears once a
+real account is attached.
+
+**The first run reaches back six months and is the long one.** Run it from a
+terminal where you can watch it rather than waiting on a cron:
+
+```bash
+npm run sync
+```
+
+Then work `/review` down to empty. Every address there is one sync deliberately
+refused to guess at, and each one you resolve teaches it a person it will
+recognise from then on. Attaching an address also pulls in that person's earlier
+correspondence, so a record you confirm does not start blank.
+
+Scheduled runs are in `vercel.json` — hourly for Gmail, every four hours for
+Calendar — and are rejected unless `CRON_SECRET` is set in the deployment's
+environment.
+
 ---
 
 ## When something is wrong
@@ -198,7 +258,13 @@ owner registration and fixture state, and prints the next action for each.
 | `relation "people" does not exist` | Either migrations are not pushed (`npm run db:push`), or the `manifest` schema is not exposed to the API (step 3). |
 | A screen 500s on a view | A migration applied partially → `npm run db:push` again |
 | "not a known specialty" on save | The value is not in `taxonomies` yet — add it there first |
+| Sync refuses to start | `MANIFEST_OWN_DOMAINS` is unset. It is the one setting sync will not run without — see step 2. |
+| Sync says "fixture data" | No `GOOGLE_CLIENT_ID`. It is replaying canned messages, not reading your mailbox (step 11). |
+| Scheduled runs never fire | `CRON_SECRET` unset in the deployment. `/api/cron/*` fails closed. |
+| A channel says "not granted" beside a scope | Google's consent screen lets you approve one API and not the other. Reconnect and tick both. |
+| Everything landed in `/review` | Sync matches on email address only, so it recognises nobody until the rolodex has addresses on file. This is why step 11 comes after step 10. |
+| A synced day looks wrong | The summary comes from the subject line and Gmail's ~200-character snippet — the body is never fetched. Use "Open in Gmail" on the timeline entry. |
 
 Before reporting a bug in the app, `npm run ci` confirms the schema and logic
-are sound locally (253 tests, migrations applied to an empty database). If CI is
+are sound locally (317 tests, migrations applied to an empty database). If CI is
 green and the deployed instance misbehaves, the difference is configuration.

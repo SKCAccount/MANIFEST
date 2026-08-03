@@ -29,6 +29,12 @@ create table touchpoints (
   source        touch_source not null default 'manual',
   external_id   text,
 
+  -- Deep link back to the thing this row was derived from — a Gmail permalink,
+  -- a Calendar event URL. Phase 2 never stores a message body, so this is the
+  -- only route from a summary back to the original. Null for anything the
+  -- operator typed.
+  external_url  text,
+
   -- Group meetings write one row per person sharing a group_key, which keeps
   -- every query person-centric. The UI collapses shared keys into one entry.
   group_key     uuid,
@@ -44,9 +50,16 @@ create table touchpoints (
 -- Sync idempotency. person_id is part of the key because a single calendar
 -- event legitimately produces one row per external attendee (section 7.3);
 -- without it, the second attendee of a synced meeting would be rejected.
+--
+-- `supersedes_id is null` narrows this to the *live* row for each key. A
+-- correction necessarily shares the external id of the row it corrects — a
+-- second message arriving in a thread later the same day re-derives the same
+-- key — so without the second predicate, append-only correction and sync
+-- idempotency would be mutually exclusive. What the index still guarantees is
+-- the thing that matters: a sync re-run cannot insert a second original.
 create unique index touchpoints_external_key
   on touchpoints (source, external_id, person_id)
-  where external_id is not null;
+  where external_id is not null and supersedes_id is null;
 
 create index touchpoints_person_occurred_idx on touchpoints (person_id, occurred_at desc);
 create index touchpoints_substantive_idx     on touchpoints (person_id, occurred_at desc) where substantive;

@@ -144,6 +144,8 @@ export type TouchpointsRow = {
   outcome: string | null;
   source: TouchSource;
   external_id: string | null;
+  /** Gmail permalink or Calendar event URL. Null for anything typed by hand. */
+  external_url: string | null;
   group_key: string | null;
   source_id: string | null;
   supersedes_id: string | null;
@@ -293,6 +295,103 @@ export type SyncStateRow = {
   detail: Json;
   created_at: string;
   updated_at: string;
+};
+
+// ---------------------------------------------------------------------------
+// Phase 2 — sync
+// ---------------------------------------------------------------------------
+
+/**
+ * The token columns are absent on purpose.
+ *
+ * Migration 0020 grants `authenticated` SELECT on the metadata columns only, so
+ * `refresh_token` and `access_token` are unreachable through the anon key
+ * regardless of what the query asks for. Listing them here would let a server
+ * component be written that type-checks and then fails at runtime — or worse,
+ * that gets handed a service client and succeeds. Only the sync job needs them,
+ * and it reads them through an explicitly-typed narrow query.
+ */
+export type GoogleCredentialsRow = {
+  id: string;
+  account_email: string;
+  scopes: string[];
+  connected_at: string;
+  revoked_at: string | null;
+  last_refresh_at: string | null;
+  last_refresh_error: string | null;
+  access_token_expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SyncRunsRow = {
+  id: string;
+  channel: string;
+  status: 'running' | 'ok' | 'error' | 'skipped';
+  provider_kind: 'live' | 'fixture';
+  started_at: string;
+  finished_at: string | null;
+  cursor_before: string | null;
+  cursor_after: string | null;
+  counts: Json;
+  error: string | null;
+  created_at: string;
+};
+
+export type SyncMessagesRow = {
+  id: string;
+  channel: string;
+  external_id: string;
+  thread_key: string;
+  person_id: string | null;
+  occurred_at: string;
+  /** Generated from occurred_at in the operator's timezone. */
+  local_date: string;
+  direction: TouchDirection;
+  touchpoint_id: string | null;
+  seen_at: string;
+};
+
+export type SyncStatusRow = {
+  channel: string;
+  label: string;
+  cursor: string | null;
+  detail: Json;
+  last_run_id: string | null;
+  last_run_status: string | null;
+  last_run_provider: string | null;
+  last_run_started_at: string | null;
+  last_run_finished_at: string | null;
+  last_run_counts: Json;
+  last_run_error: string | null;
+  last_success_at: string | null;
+  never_run: boolean;
+  in_flight: boolean;
+  /** Null when nothing has ever succeeded — "never ran" is not "went quiet". */
+  is_stale: boolean | null;
+};
+
+export type ReviewQueueRow = {
+  id: string;
+  kind: StagingKind;
+  source: TouchSource;
+  created_at: string;
+  updated_at: string;
+  note: string | null;
+  address: string;
+  display_name: string | null;
+  occurrences: number;
+  first_seen: string | null;
+  last_seen: string | null;
+  last_subject: string | null;
+  last_direction: string | null;
+  permalink: string | null;
+  domain: string | null;
+  suggested_person_id: string | null;
+  suggested_person_name: string | null;
+  suggested_score: number | null;
+  domain_organization_id: string | null;
+  domain_organization_name: string | null;
 };
 
 export type TaxonomiesRow = {
@@ -715,6 +814,13 @@ export type Database = {
       staging_records: Table<StagingRecordsRow, 'kind'>;
       merge_log: Table<MergeLogRow, 'winner_person_id' | 'loser_person_id' | 'loser_snapshot'>;
       sync_state: Table<SyncStateRow, 'channel'>;
+      google_credentials: Table<GoogleCredentialsRow, 'account_email'>;
+      sync_runs: Table<SyncRunsRow, 'channel'>;
+      sync_messages: Table<
+        SyncMessagesRow,
+        'channel' | 'external_id' | 'thread_key' | 'occurred_at' | 'direction',
+        [Rel<'sync_messages_person_id_fkey', 'person_id', 'people'>]
+      >;
       taxonomies: Table<TaxonomiesRow, 'domain' | 'value' | 'label'>;
       app_owners: Table<AppOwnersRow, 'user_id'>;
     };
@@ -738,6 +844,8 @@ export type Database = {
       v_deal_sources_org: View<Record<string, unknown>>;
       v_network_centrality: View<{ person_id: string; network_centrality: number }>;
       v_data_quality: View<DataQualityRow>;
+      v_sync_status: View<SyncStatusRow>;
+      v_review_queue: View<ReviewQueueRow>;
     };
     Functions: {
       fn_person_stage: { Args: { p_person_id: string; p_as_of?: string }; Returns: DevStage | null };
@@ -763,6 +871,43 @@ export type Database = {
           p_set_met_at?: boolean;
         };
         Returns: Array<{ person_id: string; promoted: boolean; met_at_set: boolean }>;
+      };
+      /** Idempotent sync write: inserts, supersedes, or does nothing. */
+      fn_sync_record_touchpoint: {
+        Args: {
+          p_source: TouchSource;
+          p_external_id: string;
+          p_person_id: string;
+          p_channel: TouchChannel;
+          p_direction: TouchDirection;
+          p_occurred_at: string;
+          p_subject?: string | null;
+          p_summary?: string | null;
+          p_substantive?: boolean;
+          p_external_url?: string | null;
+          p_source_id?: string | null;
+          p_group_key?: string | null;
+        };
+        Returns: Array<{ touchpoint_id: string; action: 'inserted' | 'superseded' | 'unchanged' }>;
+      };
+      /** Parks an unresolved address; never reopens one already rejected. */
+      fn_sync_stage_person: {
+        Args: {
+          p_kind: StagingKind;
+          p_source: TouchSource;
+          p_external_id: string;
+          p_payload?: Json;
+          p_note?: string | null;
+        };
+        Returns: Array<{ staging_id: string; staged: boolean }>;
+      };
+      fn_sync_attach_suggestion: {
+        Args: { p_staging_id: string; p_person_id: string };
+        Returns: Array<{ person_id: string; field: string }>;
+      };
+      fn_sync_reject_suggestion: {
+        Args: { p_staging_id: string; p_note?: string | null };
+        Returns: string;
       };
       fn_normalize_phone: { Args: { raw: string; default_cc?: string }; Returns: string | null };
       fn_normalize_linkedin: { Args: { raw: string }; Returns: string | null };

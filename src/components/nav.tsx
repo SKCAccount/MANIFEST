@@ -16,6 +16,9 @@ const LINKS = [
   { href: '/geography', label: 'Geography' },
   { href: '/rolodex', label: 'Rolodex' },
   { href: '/sources', label: 'Sources' },
+  // Last in the top bar and absent from the mobile bar below, which shows the
+  // first four: sync is something you check on, not something you work from.
+  { href: '/sync', label: 'Sync' },
 ] as const;
 
 export function Nav({ operatorEmail }: { operatorEmail: string | null }) {

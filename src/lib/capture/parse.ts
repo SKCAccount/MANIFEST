@@ -130,7 +130,13 @@ export async function parseCapture(text: string): Promise<ParseResult> {
   try {
     const response = await client.messages.parse({
       model: 'claude-opus-5',
-      max_tokens: 2000,
+      // Generous relative to the output, which is a small object. On Opus 5
+      // thinking is on by default and max_tokens caps thinking *plus* the
+      // response together, so a budget sized to the visible answer truncates
+      // the parse on any capture long enough to be worth thinking about — and
+      // a truncated parse returns no structured output at all, sending the
+      // operator to the manual form for exactly the notes least suited to it.
+      max_tokens: 8000,
       system: SYSTEM_PROMPT,
       // Low effort: this is a short, well-specified extraction, and capture
       // has a fifteen-second budget.

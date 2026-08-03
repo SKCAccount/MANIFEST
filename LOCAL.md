@@ -70,10 +70,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<the "anon key" it printed>
 SUPABASE_SERVICE_ROLE_KEY=<the "service_role key" it printed>
 MANIFEST_OWNER_EMAIL=derek@seakingcapital.com
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+MANIFEST_OWN_DOMAINS=seakingcapital.com
+CRON_SECRET=<any long random string>
 ```
 
+`MANIFEST_OWN_DOMAINS` is the one sync will not start without. It is how sync
+decides which side of a thread is you, and therefore which touchpoints are
+inbound — and inbound is what promotes a watchlist entry to an active
+relationship. Left empty, every message you sent would read as inbound and the
+whole watchlist would promote on your own unanswered mail, which does not undo.
+Sync refuses to run rather than risk it.
+
 `ANTHROPIC_API_KEY` is optional — without it quick capture falls back to the
-manual form and everything else is unchanged.
+manual form and synced touchpoints keep their subject line instead of a
+summary. Everything else is unchanged.
+
+The `GOOGLE_*` variables are optional too, and locally you probably want them
+empty: sync then replays the fixtures in `src/lib/sync/google/fixtures/`, which
+is enough to exercise every screen without going through Google's OAuth
+verification. Every run made that way is recorded as `provider_kind = 'fixture'`
+and the Sync screen leads with a banner saying so.
 
 ```bash
 npm run doctor
@@ -111,6 +127,8 @@ there. It never touches a real inbox.
 | | |
 |---|---|
 | App | [localhost:3000](http://localhost:3000) |
+| Sync status, and the Google connect button | [localhost:3000/sync](http://localhost:3000/sync) |
+| Whatever sync could not place | [localhost:3000/review](http://localhost:3000/review) |
 | Studio — browse and edit tables directly | [localhost:54323](http://localhost:54323) |
 | Inbox — every outbound email, incl. magic links | [localhost:54324](http://localhost:54324) |
 | API | `http://127.0.0.1:54321` |
@@ -128,7 +146,20 @@ npx supabase db reset        # wipe, re-apply migrations, reload fixtures
 ```
 
 `db reset` is the one to reach for after changing a migration. It is destructive
-and local-only.
+and local-only. Because migrations are still edited in place rather than
+superseded (see the README), a *reset* rather than a push is what you need after
+pulling changes that touch an existing migration file — a push would skip them.
+
+```bash
+npm run sync                 # both channels once, printing what each did
+npm run sync gmail           # or calendar
+```
+
+Against the fixtures, the first run writes three email touchpoints and two
+meeting touchpoints and leaves two addresses for review; the second run writes
+one more — the correction that turns Henrik Sorensen's outbound-only day into a
+two-way exchange and promotes him off the watchlist. That sequence is the whole
+of Phase 2 in miniature, and it is what `/sync` and `/review` are for.
 
 ## Clearing the demo data
 
@@ -178,7 +209,11 @@ owner table.
 | `relation "people" does not exist` | The client is looking at `public`. The schema is `manifest` — check `[api] schemas` in config.toml. |
 | Studio shows no tables | Switch the schema selector to `manifest`. |
 | Magic link never arrives | It did — it is at [localhost:54324](http://localhost:54324), not in your real inbox. |
+| `sync_runs does not exist` | The stack is still on an older migration set. `npx supabase db reset` — a push will not pick up migrations that were edited in place. |
+| Sync refuses to start | `MANIFEST_OWN_DOMAINS` is unset. It is the one setting sync will not run without. |
+| `/sync` shows a fixture banner | Expected locally. No `GOOGLE_CLIENT_ID`, so it is replaying canned mail rather than reading a mailbox. |
 
-`npm run ci` needs none of this and passes on its own — 253 tests against an
-in-process Postgres. If CI is green and the local stack misbehaves, the
-difference is configuration, not logic.
+`npm run ci` needs none of this and passes on its own — 317 tests against an
+in-process Postgres, including the whole Phase 2 pipeline against the fixture
+provider. If CI is green and the local stack misbehaves, the difference is
+configuration, not logic.

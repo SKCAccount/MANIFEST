@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "doctor": "tsx --env-file-if-exists=.env.local scripts/doctor.ts",
+    "sync": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/sync.ts",
     "bootstrap:owner": "tsx --env-file-if-exists=.env.local scripts/bootstrap-owner.ts",
     "fixtures:load": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts load",
     "fixtures:clear": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts clear",

@@ -1,0 +1,104 @@
+{
+  "_readme": [
+    "Canned Calendar payloads. Same batching and same UTC-time convention as gmail.json.",
+    "",
+    "Calendar needs no rollup: one event is one meeting, and it already produces one",
+    "touchpoint per external attendee (touchpoints_external_key includes person_id for",
+    "exactly this reason). What it needs instead is a set of rules about which attendees",
+    "count, because channel = 'meeting' qualifies for promotion — a calendar entry can turn",
+    "a watchlist name into an active relationship, and an invitation nobody accepted is not",
+    "a meeting that happened."
+  ],
+
+  "operator": "derek@seakingcapital.com",
+
+  "batches": [
+    [
+      {
+        "_case": "A real meeting with two external attendees, one accepted and one tentative. Both count. The conference room is an attendee as far as the API is concerned and must not become a person.",
+        "id": "ev-dinner",
+        "dayOffset": -4,
+        "startTime": "22:00",
+        "endTime": "23:30",
+        "summary": "Dinner — Erica + Marcus, receivables structure",
+        "status": "confirmed",
+        "organizer": "Derek Goldstein <derek@seakingcapital.com>",
+        "attendees": [
+          { "email": "derek@seakingcapital.com", "name": "Derek Goldstein", "responseStatus": "accepted", "self": true, "organizer": true },
+          { "email": "erica@gendellpartners.com", "name": "Erica Gendell", "responseStatus": "accepted" },
+          { "email": "mvance@carltonfields.com", "name": "Marcus Vance", "responseStatus": "tentative" },
+          { "email": "room-14b@seakingcapital.com", "name": "Conference Room 14B", "responseStatus": "accepted", "resource": true }
+        ]
+      },
+      {
+        "_case": "Attendee declined. They were invited and did not come, so there was no contact. Writing a meeting touchpoint here would promote a watchlist entry on the strength of an invitation the person refused.",
+        "id": "ev-declined",
+        "dayOffset": -3,
+        "startTime": "15:00",
+        "endTime": "15:30",
+        "summary": "Intro call — Rosalind Pike",
+        "status": "confirmed",
+        "organizer": "Derek Goldstein <derek@seakingcapital.com>",
+        "attendees": [
+          { "email": "derek@seakingcapital.com", "name": "Derek Goldstein", "responseStatus": "accepted", "self": true, "organizer": true },
+          { "email": "rpike@pikeassoc.com", "name": "Rosalind Pike", "responseStatus": "declined" }
+        ]
+      },
+      {
+        "_case": "Past meeting whose external attendee never responded to the invite. Genuinely ambiguous — most people never RSVP and turn up anyway — so it is neither recorded nor discarded, it becomes a review item for the one person who actually knows.",
+        "id": "ev-needsaction",
+        "dayOffset": -3,
+        "startTime": "18:00",
+        "endTime": "19:00",
+        "summary": "Coffee — Lattimore Advisors",
+        "status": "confirmed",
+        "organizer": "Dana Lattimore <dl@lattimoreadvisors.com>",
+        "attendees": [
+          { "email": "derek@seakingcapital.com", "name": "Derek Goldstein", "responseStatus": "accepted", "self": true },
+          { "email": "dl@lattimoreadvisors.com", "name": "Dana Lattimore", "responseStatus": "needsAction", "organizer": true }
+        ]
+      },
+      {
+        "_case": "Cancelled. Arrives on the incremental feed because showDeleted is on; must write nothing.",
+        "id": "ev-cancelled",
+        "dayOffset": -2,
+        "startTime": "16:00",
+        "endTime": "16:30",
+        "summary": "Call — Grant Whitfield",
+        "status": "cancelled",
+        "organizer": "Derek Goldstein <derek@seakingcapital.com>",
+        "attendees": [
+          { "email": "derek@seakingcapital.com", "name": "Derek Goldstein", "responseStatus": "accepted", "self": true, "organizer": true },
+          { "email": "grant@whitfieldco.com", "name": "Grant Whitfield", "responseStatus": "accepted" }
+        ]
+      },
+      {
+        "_case": "Still in the future. Comes back because the sync token query has no upper bound (see live.ts on why), and is filtered on the way through — a meeting that has not happened yet is not contact.",
+        "id": "ev-future",
+        "dayOffset": 7,
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "summary": "Call — Beatrice Solomon",
+        "status": "confirmed",
+        "organizer": "Derek Goldstein <derek@seakingcapital.com>",
+        "attendees": [
+          { "email": "derek@seakingcapital.com", "name": "Derek Goldstein", "responseStatus": "accepted", "self": true, "organizer": true },
+          { "email": "bsolomon@solomonfo.com", "name": "Beatrice Solomon", "responseStatus": "accepted" }
+        ]
+      },
+      {
+        "_case": "Blocked focus time. No attendees at all, so nobody to record it against.",
+        "id": "ev-solo",
+        "dayOffset": -2,
+        "startTime": "13:00",
+        "endTime": "15:00",
+        "summary": "Diligence review",
+        "status": "confirmed",
+        "organizer": "Derek Goldstein <derek@seakingcapital.com>",
+        "attendees": []
+      }
+    ],
+
+    []
+  ]
+}

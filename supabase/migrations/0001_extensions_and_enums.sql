@@ -58,8 +58,14 @@ create type followup_status as enum ('open', 'done', 'dropped');
 
 create type favor_kind as enum ('intro', 'referral', 'business', 'advice', 'hospitality', 'other');
 
+-- `gmail_suggestion` and `calendar_suggestion` are the two things Phase 2 sync
+-- cannot resolve on its own: an address that matches nobody, and a past meeting
+-- whose external attendee never responded to the invite. Both are parked here
+-- rather than guessed at, because a wrong person is more expensive than a
+-- pending one.
 create type staging_kind as enum (
-  'person_suggestion', 'dedupe_candidate', 'job_change', 'gmail_suggestion', 'linkedin_connection'
+  'person_suggestion', 'dedupe_candidate', 'job_change',
+  'gmail_suggestion', 'calendar_suggestion', 'linkedin_connection'
 );
 
 create type staging_status as enum ('pending', 'accepted', 'rejected', 'merged');
