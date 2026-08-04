@@ -116,9 +116,13 @@ worse than an extra step.)
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000), enter your address, submit — then
-open **[localhost:54324](http://localhost:54324)** and click the link waiting
-there. It never touches a real inbox.
+Two ways in, both fine locally:
+
+- **Password** — `npm run auth:set-password` once (typing hidden, set through
+  the admin API), then sign in normally.
+- **Magic link** — "Email me a sign-in link instead" on the login page, then
+  open **[localhost:54324](http://localhost:54324)** and click the link waiting
+  there. It never touches a real inbox.
 
 ---
 

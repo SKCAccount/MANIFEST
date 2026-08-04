@@ -70,6 +70,13 @@ export function describeAuthError(message: string, url: string | undefined): str
     );
   }
 
+  if (/invalid login credentials/i.test(message)) {
+    return (
+      'Wrong email or password. Lost the password? Use "Email me a sign-in link instead" below, ' +
+      'or run `npm run auth:set-password` from the project directory.'
+    );
+  }
+
   if (/signups? not allowed|Signups not allowed for otp/i.test(message)) {
     return (
       'That address has no account. Signup is disabled by design — create the user in the ' +

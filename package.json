@@ -18,6 +18,7 @@
     "doctor": "tsx --env-file-if-exists=.env.local scripts/doctor.ts",
     "sync": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/sync.ts",
     "bootstrap:owner": "tsx --env-file-if-exists=.env.local scripts/bootstrap-owner.ts",
+    "auth:set-password": "tsx --env-file-if-exists=.env.local scripts/set-password.ts",
     "fixtures:load": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts load",
     "fixtures:clear": "tsx --env-file-if-exists=.env.local scripts/fixtures.ts clear",
     "db:push": "supabase db push",

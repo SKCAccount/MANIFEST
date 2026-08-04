@@ -131,7 +131,13 @@ command.
 
 ```bash
 npm run doctor      # everything green
+npm run auth:set-password
 ```
+
+The second command prompts for a password (typing hidden, entered twice) and
+sets it through the admin API — it never touches your shell history or any
+log. Signup is disabled, so this script is also how a lost password gets
+reset.
 
 ## 8. Start the app
 
@@ -139,13 +145,14 @@ npm run doctor      # everything green
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000), enter your address, and follow the
-emailed link.
+Open [localhost:3000](http://localhost:3000) and sign in with your email and
+password.
 
-**If the email does not arrive:** Supabase's built-in SMTP is rate-limited to a
-couple of messages an hour on the free tier and lands in spam more often than
-not. The reliable path while testing is **Authentication → Users → ⋯ → Send
-magic link**, or generate a link straight from the dashboard.
+**Forgot the password, or have not set one yet?** "Email me a sign-in link
+instead" on the login page still works — though free-tier SMTP is rate-limited
+to a couple of messages an hour and lands in spam more often than not. The
+reliable fix is `npm run auth:set-password`; the reliable email fallback is
+**Authentication → Users → ⋯ → Send magic link** from the dashboard.
 
 ## 9. Load the demo data — scratch project only
 
@@ -259,8 +266,9 @@ owner registration and fixture state, and prints the next action for each.
 | `fetch failed` on the sign-in form | The app cannot reach the project URL. Wrong URL in `.env.local`, project still provisioning, or a free-tier project paused after a week idle. Not a sign-in problem. |
 | "Not connected to a database yet" | No `.env.local`, or it still holds placeholder values. The page tells you which. |
 | Signed in, every screen empty | `app_owners` has no row for you → `npm run bootstrap:owner` |
+| "Wrong email or password" | `npm run auth:set-password` sets a fresh one — there is no self-service reset, by design |
 | Magic link signs you out again | Callback URL not allowlisted (step 4) |
-| No magic link email | Free-tier SMTP limit — send it from the dashboard instead |
+| No magic link email | Free-tier SMTP limit — send it from the dashboard instead, or skip email entirely with a password |
 | `relation "people" does not exist` | Either migrations are not pushed (`npm run db:push`), or the `manifest` schema is not exposed to the API (step 3). |
 | A screen 500s on a view | A migration applied partially → `npm run db:push` again |
 | "not a known specialty" on save | The value is not in `taxonomies` yet — add it there first |

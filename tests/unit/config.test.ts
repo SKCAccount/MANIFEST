@@ -89,7 +89,16 @@ describe('describeAuthError', () => {
     expect(message).toMatch(/URL Configuration/);
   });
 
+  it('explains a wrong password and names both recovery paths', () => {
+    const message = describeAuthError('Invalid login credentials', url);
+    expect(message).toMatch(/wrong email or password/i);
+    expect(message).toMatch(/sign-in link instead/i);
+    expect(message).toMatch(/auth:set-password/);
+  });
+
   it('passes anything it does not recognize through unchanged', () => {
-    expect(describeAuthError('Invalid login credentials', url)).toBe('Invalid login credentials');
+    expect(describeAuthError('Database error granting user', url)).toBe(
+      'Database error granting user',
+    );
   });
 });

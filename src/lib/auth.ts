@@ -1,5 +1,6 @@
 /**
- * Auth helpers. Single account, magic link.
+ * Auth helpers. Single account; email + password, with a magic-link fallback
+ * for recovery (`npm run auth:set-password` sets or resets the password).
  *
  * Every page and every server action funnels through requireOperator(), which
  * both establishes the session and confirms the signed-in user is a registered
