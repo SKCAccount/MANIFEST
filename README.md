@@ -10,7 +10,7 @@ Everything here is addressed to one person at a time. There is no subscription s
 
 ## Status
 
-**Phases 0–3 are complete, verified, and deployed.** Since 2026-08-03 MANIFEST runs on the combined Sea King Supabase project (ref `oznvdznekexdgblmxwqr` — the project still named "plunder", which it shares with Plunder's `plunder` schema per the one-schema-per-system design). **Migrations are forward-only from here** — the edit-in-place rule served its purpose and is over.
+**Phases 0–3 are complete, verified, and deployed.** Since 2026-08-03 MANIFEST runs on the combined Sea King Supabase project (**seaking**, ref `oznvdznekexdgblmxwqr`), which it shares with Plunder's `plunder` schema per the one-schema-per-system design. **Migrations are forward-only from here** — the edit-in-place rule served its purpose and is over.
 
 Two deployment specifics worth knowing before touching anything:
 
