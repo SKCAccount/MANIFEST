@@ -2,6 +2,14 @@
 
 **Status: DRAFT for review by Derek and Austin. Nothing in §6 onward gets built until this document is agreed.**
 
+> **⚠ Revision pending — read [discovery.md](discovery.md) §10a first.** Derek's 2026-08-03 direction changes supersede parts of this draft:
+> **(1) One origin, not subdomains** — the suite lives at `app.seakingcapital.com` behind a single shell/launcher; tools mount under paths; the launcher shows only what you're permissioned for. §3.3 (cookie-domain widening) and §8 (hosting table) are superseded — same-origin needs neither. The client portal is expected to stay separate (external users never see the launcher; confirming).
+> **(2) Account setup = per-system yes/no toggles**, admin-driven, no self-signup anywhere, ever. The toggles are membership rows; the shell gains the account-admin screen.
+> **(3) MANIFEST is the only per-user system** (D8 confirmed as stated).
+> **(4) Harpoon eventually joins the web surface** (§1.4 unknown resolved by discovery).
+> **(5) ⛔ Production Kraken (Netlify + `ucfy`) is frozen until Derek lifts it** — including two approved-but-deferred fixes (signup off, custom SMTP). The K-runbook's clock does not start until then.
+> A full rewrite lands after the remaining §10a open items settle.
+
 Drafted 2026-08-03. This is the design for bringing Kraken, Plunder, MANIFEST, and later Harpoon and Deepwatch onto one Supabase project with one sign-in, where what a signed-in person can do in each tool is decided by that tool's own permissioning — and nothing else.
 
 Two systems already live on the combined project, so parts of this document describe running reality rather than proposal. Those parts are marked **[LIVE]**. Everything else is **[PROPOSED]** or **[OPEN]**, and the open items are collected in §11.

@@ -16,7 +16,7 @@ Nine systems/artifacts found. Three were previously unknown to the suite convers
 | **Plunder** | Event sourcing & scoring engine for BD ("find rooms dense with qualified buyers") | `SKCAccount/PLUNDER`, local `plunder/` | **GitHub Actions cron** (nightly chain + Monday digest) | `seaking` → `plunder` schema, ~3.5k rows | Live; ran 2026-08-03 10:16 UTC |
 | **MANIFEST** | Derek's personal rolodex | this repo | local dev today; Vercel pending | `seaking` → `manifest` schema | Deployed 2026-08-03, empty, awaiting first entries |
 | **Harpoon** | Award-triggered govcon origination agent | `SKCAccount/HARPOON`, local `harpoon/` | **Local Docker** (`harpoon-queue`, 127.0.0.1:8010) + weekly Windows task | SQLite in Docker volume | Live locally; deliberate PII containment |
-| **Deepwatch** | Deterministic conditional document-assembly engine (deals) | local `deepwatch/` — **git repo with NO remote** | none | filesystem (`corpus/`, `deals/`, `out/`) | Active July; single-machine only ⚠ |
+| **Deepwatch** | Deterministic conditional document-assembly engine (deals) | `SKCAccount/DEEPWATCH` (pushed 2026-08-03), local `deepwatch/` | none | filesystem (`corpus/`, `deals/`, `out/`) | Active July; remote risk closed ✓ |
 | **seaking** (platform) | The combined Supabase project | — | ref `oznvdznekexdgblmxwqr` | schemas: `manifest`, `plunder`, empty `public` | Live; 1 auth user; signup off |
 | `seaking-accountingevent-crm` | Atomic CRM fork (React + Supabase) with inbox-scan for in-person events | `SKCAccount/seaking-event-crm` | unknown | unknown | Last commit 2026-06-26 — **[ASK]** retired? Overlaps Plunder (events) + MANIFEST (CRM) |
 | `sea-king-app` | React/Vite + Supabase starter | local only, no remote found | none apparent | local config only | **[ASK]** abandoned prototype? |
@@ -176,6 +176,25 @@ To be applied in the design-doc revision **after** Derek reviews this file — r
 8. Netlify account: who owns it, and can I get read access to enumerate both sites' env vars at K0?
 9. MANIFEST subdomain choice (`manifest.seakingcapital.com`?) — needed for the Vercel deploy + GoDaddy DNS entry.
 10. Austin's review of this file + the design doc.
+
+## 10a. Decisions received (2026-08-03, Derek) — and the standing freeze
+
+**⛔ Standing constraint, effective immediately: production Kraken is frozen.** No changes to the Netlify sites or to the `ucfy` Supabase project until Derek lifts this. Two already-approved fixes are therefore **deferred, not done**: closing signup on `ucfy` (#2) and custom SMTP on `ucfy` (#3 — Resend, `no-reply@seakingcapital.com`). Both execute at freeze-lift or as an early port step. (I was mid-flight on both when the freeze landed; nothing was touched.)
+
+The §10 answers:
+
+1. **Plunder gate: yes** — and generalized: account setup becomes per-system yes/no toggles ("Kraken access? Plunder access? …"), admin-driven; unpermissioned tools don't even appear in the main dash. Toggles = membership rows; the "main dash" implies a **suite shell/launcher** (see #9).
+2. **Signup: never, anywhere.** Accounts exist only when an admin creates them. (Execution on `ucfy` deferred per the freeze; already true on `seaking`.)
+3. **SMTP: approved** — Resend, portal's key, `no-reply@seakingcapital.com`. Deferred per the freeze.
+4. **Deepwatch: DONE** — pushed to `SKCAccount/DEEPWATCH` (remote's auto-init README merged, history preserved). Single-machine risk closed.
+5. **Kraken working copy: DONE** — both docs-only commits pushed (`25faf73..1c344d1`).
+6. **Experiments: graveyard**, both (`seaking-accountingevent-crm`, `sea-king-app`). Estate map updated; archiving the CRM repo on GitHub is optional cleanup.
+7. **Harpoon: eventually web** — joins the suite surface someday; PII posture travels with it.
+8. **Netlify at K0 via session: fine** (unchanged by the freeze — K0 is read-only and comes later).
+9. **Architecture pivot: one origin, not many subdomains.** `app.seakingcapital.com` becomes the *suite* — sign in once at a shell/launcher showing exactly the tools you're permissioned for; Kraken, MANIFEST, Plunder, Harpoon, Deepwatch live under it. Supersedes the design doc's cookie-domain-widening plan (§3.3) and hosting table (§8): same-origin needs no domain cookie at all — simpler and safer. Realization shape (proposed): multi-zone — each tool stays its own deployable app mounted under a path (`/kraken`, `/manifest`, …), shell at the root owning the launcher + the toggle-based account admin. Open interim question: MANIFEST needs a phone-reachable URL before any shell exists (below).
+10. **MANIFEST is the only per-user system** — everything else is shared-with-permissions. Understood and unambiguous; it matches D8 exactly.
+
+**Open after this round:** (a) interim MANIFEST URL until the shell exists — temporary `manifest.seakingcapital.com` (DNS + Vercel only, zero Kraken impact, folds under `app./manifest` later) vs. wait; (b) confirm the client portal stays separate at `portal.seakingcapital.com`, outside the shell — external clients should never see the launcher; (c) suite docs' home — proposed: a dedicated `SKCAccount` repo, with sessions opening at the `Claude Projects` root (Derek raised the zoom-out question; recommendation logged, awaiting his call).
 
 ## 11. Discovery log
 
