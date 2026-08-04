@@ -17,7 +17,10 @@ const PLACEHOLDER_HOSTS = ['placeholder.supabase.co', 'example.supabase.co', 'yo
 
 export function supabaseConfigStatus(): ConfigStatus {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Either key generation: legacy JWT anon keys, or the sb_publishable_ keys
+  // new projects issue since Supabase's 2025 rename.
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !anonKey) {
     return {
@@ -25,7 +28,7 @@ export function supabaseConfigStatus(): ConfigStatus {
       reason: 'missing',
       detail: !url
         ? 'NEXT_PUBLIC_SUPABASE_URL is not set.'
-        : 'NEXT_PUBLIC_SUPABASE_ANON_KEY is not set.',
+        : 'Neither NEXT_PUBLIC_SUPABASE_ANON_KEY nor NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is set.',
     };
   }
 

@@ -39,8 +39,11 @@ async function main() {
   // 1. Environment
   // -------------------------------------------------------------------------
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Either key generation: legacy JWT keys, or the sb_publishable_/sb_secret_
+  // pair new projects issue since Supabase's 2025 rename.
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
   const ownerEmail = process.env.MANIFEST_OWNER_EMAIL;
 
   record({
@@ -51,17 +54,21 @@ async function main() {
   });
 
   record({
-    label: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    label: 'Anon / publishable key',
     state: anonKey ? 'ok' : 'fail',
-    detail: anonKey ? `${anonKey.slice(0, 12)}…` : 'not set',
-    fix: 'Supabase dashboard → Project Settings → API Keys → anon / public',
+    detail: anonKey ? `${anonKey.slice(0, 18)}…` : 'not set',
+    fix:
+      'Project Settings → API Keys. Legacy projects: the anon key into NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
+      'New projects: the sb_publishable_ key into NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Either name works.',
   });
 
   record({
-    label: 'SUPABASE_SERVICE_ROLE_KEY',
+    label: 'Service / secret key',
     state: serviceKey ? 'ok' : 'fail',
     detail: serviceKey ? `${serviceKey.slice(0, 12)}…` : 'not set',
-    fix: 'Supabase dashboard → Project Settings → API Keys → service_role (keep this server-side)',
+    fix:
+      'Project Settings → API Keys. Legacy: service_role into SUPABASE_SERVICE_ROLE_KEY. ' +
+      'New: the sb_secret_ key into SUPABASE_SECRET_KEY. Server-side only, either name works.',
   });
 
   record({
@@ -105,15 +112,28 @@ async function main() {
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI,
   );
 
+  // What "no Google" means depends on where the database is. Locally the
+  // fixture provider steps in; against a hosted project sync refuses instead,
+  // so fixture mail can never land in real data.
+  const urlIsLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|$)/i.test(url ?? '');
+
   record({
     label: 'Google OAuth app',
     state: googleConfigured ? 'ok' : 'warn',
-    detail: googleConfigured ? 'configured' : 'not configured — sync runs on fixtures',
+    detail: googleConfigured
+      ? 'configured'
+      : urlIsLocal
+        ? 'not configured — sync runs on fixtures'
+        : 'not configured — sync refuses to run',
     fix: googleConfigured
       ? undefined
-      : 'Optional. Without it sync replays canned messages from src/lib/sync/google/fixtures/, which ' +
-        'is enough to exercise every screen. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and ' +
-        'GOOGLE_REDIRECT_URI to connect a real account.',
+      : urlIsLocal
+        ? 'Optional. Without it sync replays canned messages from src/lib/sync/google/fixtures/, which ' +
+          'is enough to exercise every screen. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and ' +
+          'GOOGLE_REDIRECT_URI to connect a real account.'
+        : 'Deliberate: fixture mail must never reach a real database, so sync stays off until ' +
+          'GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI are set (SETUP.md step 11 ' +
+          '— after the thirty relationships are entered).',
   });
 
   record({

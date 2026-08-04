@@ -34,12 +34,14 @@ cp .env.example .env.local
 ```
 
 From **Project Settings → Data API**, copy the Project URL. From **Project
-Settings → API Keys**, copy the `anon` key and the `service_role` key:
+Settings → API Keys**, copy the two keys. Newer projects show a **publishable**
+key (`sb_publishable_…`) and a **secret** key (`sb_secret_…`) — same roles as
+the legacy `anon` / `service_role` pair, new names. Either naming works:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
-SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<sb_publishable_… — or NEXT_PUBLIC_SUPABASE_ANON_KEY on legacy projects>
+SUPABASE_SECRET_KEY=<sb_secret_… — or SUPABASE_SERVICE_ROLE_KEY on legacy projects>
 MANIFEST_OWNER_EMAIL=derek@seakingcapital.com
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 MANIFEST_OWN_DOMAINS=seakingcapital.com
@@ -105,8 +107,11 @@ npm run doctor      # schema, taxonomies and views should now be green
 
 ## 6. Create your auth user
 
-Signup is disabled by design (`config.toml`: `enable_signup = false`), so this
-is a deliberate manual step rather than something an unknown address can do.
+Turn signup **off** in the dashboard while you are here — **Authentication →
+Sign In / Up → disable new sign-ups** — so creating a user is a deliberate
+manual step rather than something an unknown address can do. (Locally,
+`config.toml` deliberately leaves signup *on* so `supabase start` can create
+the first user without a dashboard; hosted is where it must be off.)
 
 **Authentication → Users → Add user:**
 

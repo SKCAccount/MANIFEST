@@ -33,7 +33,30 @@ export async function resolveProvider(): Promise<ProviderResolution> {
   // the sync runs end to end against canned data — which is what makes the
   // screens, the cron routes and the whole pipeline reviewable before anyone
   // has been through Google's verification process.
+  //
+  // Against a local stack only. On a hosted project, "no Google yet" is the
+  // normal state between deploying and connecting an account, and a stray
+  // "Sync now" during that window would replay invented mail into a real
+  // review queue. Mixing fixture people into real data is the one thing this
+  // system must never do, so the fixture provider refuses to run against a
+  // non-local database. The override exists for the scratch-project demo case
+  // (SETUP.md step 9), where the fixtures are the point.
   if (!google) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+    const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|$)/i.test(supabaseUrl);
+
+    if (!isLocal && process.env.MANIFEST_ALLOW_FIXTURE_SYNC !== '1') {
+      return {
+        ok: false,
+        reason: 'not_configured',
+        detail:
+          'No Google OAuth app is configured, and this is not a local stack — refusing to replay ' +
+          'fixture mail into a real database. Set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / ' +
+          'GOOGLE_REDIRECT_URI to connect a real account, or MANIFEST_ALLOW_FIXTURE_SYNC=1 if ' +
+          'this is a scratch project where the demo data is the point.',
+      };
+    }
+
     return { ok: true, provider: new FixtureGoogleProvider(), credentialId: null };
   }
 

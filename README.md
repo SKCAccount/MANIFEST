@@ -10,7 +10,12 @@ Everything here is addressed to one person at a time. There is no subscription s
 
 ## Status
 
-**Phases 0–3 are complete and verified.** Nothing is deployed: there is no hosted project yet, and the schema has only ever been applied locally and to the test harness.
+**Phases 0–3 are complete, verified, and deployed.** Since 2026-08-03 MANIFEST runs on the combined Sea King Supabase project (ref `oznvdznekexdgblmxwqr` — the project still named "plunder", which it shares with Plunder's `plunder` schema per the one-schema-per-system design). **Migrations are forward-only from here** — the edit-in-place rule served its purpose and is over.
+
+Two deployment specifics worth knowing before touching anything:
+
+- **Do not run `npm run db:push` against the combined project.** `supabase_migrations.schema_migrations` there belongs to Plunder's CLI history, and the Supabase CLI cannot serve two repos on one project. MANIFEST's migrations are recorded in its own ledger, `manifest.schema_migrations` — RLS-enabled with no policies and no grants, so it is unreachable through the API under any key. Future migrations (`0023+`) are applied over a direct connection or the dashboard SQL editor and appended to that ledger by hand.
+- The auth user and `app_owners` registration exist; fixtures were never loaded there and must never be.
 
 Phase 1 is a shippable product on its own: fully usable by hand, with zero integrations. Phase 2 adds Gmail and Calendar without changing that — sync writes touchpoints and never creates a person. Phase 3 added no schema at all: the event economics were being recorded from Phase 0, and what was missing was a screen honest enough to show them.
 
@@ -128,7 +133,7 @@ google/        the interface, the live client, the fixtures    server-only (live
 
 The runners import a provider and a store and nothing else — no `serviceClient`, no `server-only`. That is what lets `tests/helpers/sync-store.ts` hand them a PGlite-backed store and run the shipping code against real triggers with no Docker and no network.
 
-**Migrations are edited in place, not superseded, until something real depends on them.** The numbering rule protects databases that have already applied a migration; no such database exists yet. When the mailing-list machinery came out, `0001`, `0005`, `0009`, `0015`, `0016` and `0019` were rewritten rather than followed by a migration that dropped what `0009` had just created. Phase 2 did the same to `0001` (a new `staging_kind` value) and `0006` (an `external_url` column, and a narrowed unique index) rather than adding an `ALTER` that would have had to be read alongside the original forever. Once there is a hosted project, that stops being true and changes go forward-only.
+**Migrations are forward-only as of 2026-08-03**, when `0001`–`0022` were applied to the hosted combined project. Before that they were edited in place rather than superseded — when the mailing-list machinery came out, `0001`, `0005`, `0009`, `0015`, `0016` and `0019` were rewritten rather than followed by a migration that dropped what `0009` had just created, and Phase 2 edited `0001` and `0006` the same way. That rule protected nothing while no real database existed, and protects the real database now by being over: a change to the schema is a new numbered file, applied to the hosted project and recorded in `manifest.schema_migrations`, and the existing files are never touched again.
 
 **Do not run `npm run db:types`.** `src/lib/db/database.types.ts` is written by hand. It exports named row types — `PeopleRow`, `SourceMetricsRow`, `PathToRow` — that `supabase gen types` does not produce, and running the script overwrites the file and collapses every table and view to `never`. The guard is `tests/phase0/types.test.ts`, which introspects the live schema and fails if the hand-written types drift from it. Edit the file, then let CI check it.
 

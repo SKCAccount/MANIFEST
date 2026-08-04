@@ -20,11 +20,13 @@ const DIM = '[2m';
 const RESET = '[0m';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
 const email = (process.env.MANIFEST_OWNER_EMAIL ?? process.argv[2])?.trim().toLowerCase();
 
 if (!url || !serviceKey) {
-  console.error(`${RED}Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.${RESET}`);
+  console.error(
+    `${RED}Missing NEXT_PUBLIC_SUPABASE_URL, or a service key (SUPABASE_SERVICE_ROLE_KEY / SUPABASE_SECRET_KEY).${RESET}`,
+  );
   console.error(`${DIM}Fill in .env.local, then run: npm run doctor${RESET}`);
   process.exit(1);
 }

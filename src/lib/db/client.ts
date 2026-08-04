@@ -25,8 +25,7 @@ export type ManifestClient = ReturnType<typeof browserClient>;
  */
 export const SCHEMA = 'manifest';
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
+function required(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(
       `Missing ${name}. Copy .env.example to .env.local and fill it in — no secrets live in the repo.`,
@@ -35,8 +34,27 @@ function requireEnv(name: string): string {
   return value;
 }
 
-const url = () => requireEnv('NEXT_PUBLIC_SUPABASE_URL');
-const anonKey = () => requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+/**
+ * Two names per key, and static property access on purpose.
+ *
+ * Supabase renamed its API keys in 2025: new projects issue
+ * `sb_publishable_...` / `sb_secret_...` under new dashboard names, older ones
+ * carry the legacy JWT `anon` / `service_role` keys. The values are
+ * interchangeable where supabase-js takes a key, so both spellings are read
+ * and whichever is set wins — the combined seaking project uses the new kind.
+ *
+ * The lookups are written out literally rather than through a helper taking a
+ * name, because Next.js inlines `process.env.NEXT_PUBLIC_*` into the browser
+ * bundle only when the expression appears verbatim — a dynamic
+ * `process.env[name]` compiles to `undefined` in client code with no error
+ * anywhere.
+ */
+const url = () => required('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
+const anonKey = () =>
+  required(
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY (or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
 
 export function browserClient() {
   return createBrowserClient<Database>(url(), anonKey(), { db: { schema: SCHEMA } });
@@ -82,8 +100,15 @@ export function serviceClient() {
     throw new Error('serviceClient() is server-only. It bypasses RLS and must never reach the browser.');
   }
 
-  return createClient<Database>(url(), requireEnv('SUPABASE_SERVICE_ROLE_KEY'), {
-    db: { schema: SCHEMA },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createClient<Database>(
+    url(),
+    required(
+      'SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)',
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY,
+    ),
+    {
+      db: { schema: SCHEMA },
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
 }
