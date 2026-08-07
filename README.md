@@ -29,11 +29,11 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 | Screens | 14, plus the login and offline pages — queue, person, directory, watchlist, geography, rolodex, sources, review, sync |
 | Fixtures | 25 people — 20 active, 5 uncontacted |
 | Schema | `manifest` — one schema per system on a shared database |
-| Tests | 324 passing |
+| Tests | 325 passing |
 
 **Phase 2 runs against fixtures.** There are no Google credentials for this project yet, so sync is complete but has never spoken to Google. Everything above the transport — matching, direction, rollup, promotion, idempotency, correction, staging — is real code exercised end to end by `npm run ci`; the live HTTP client is written and unexercised. See [§ Sync, without Google](#sync-without-google).
 
-**What is left.** Phase 4, as this repository described it, was a consent-gated export to a mailing platform; that is now out of scope rather than pending, so unless something else is added it is void. Nothing else is outstanding.
+**What is left.** Phase 4, as this repository described it, was a consent-gated export to a mailing platform; that is now out of scope rather than pending, and void. The living list is [BACKLOG.md](BACKLOG.md) *(2026-08-07)* — headlined by the proactive layer (introducer nudges, content-audience matching, event ROI × deal dollars), which Derek confirmed as the finish line. Session context: [CLAUDE.md](CLAUDE.md).
 
 ```bash
 npm install

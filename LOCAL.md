@@ -149,10 +149,11 @@ npx supabase start           # back up where you left off
 npx supabase db reset        # wipe, re-apply migrations, reload fixtures
 ```
 
-`db reset` is the one to reach for after changing a migration. It is destructive
-and local-only. Because migrations are still edited in place rather than
-superseded (see the README), a *reset* rather than a push is what you need after
-pulling changes that touch an existing migration file — a push would skip them.
+`db reset` is the one to reach for after pulling schema changes. It is
+destructive and local-only. Migrations have been **forward-only since
+2026-08-03** — the edit-in-place era an earlier version of this note described
+is over — so a reset simply re-applies the full numbered set from empty and
+reloads the fixtures, which is the sure way to bring a local stack current.
 
 ```bash
 npm run sync                 # both channels once, printing what each did
@@ -232,7 +233,7 @@ owner table.
 | Sync refuses to start | `MANIFEST_OWN_DOMAINS` is unset. It is the one setting sync will not run without. |
 | `/sync` shows a fixture banner | Expected locally. No `GOOGLE_CLIENT_ID`, so it is replaying canned mail rather than reading a mailbox. |
 
-`npm run ci` needs none of this and passes on its own — 324 tests against an
+`npm run ci` needs none of this and passes on its own — 325 tests against an
 in-process Postgres, including the whole Phase 2 pipeline against the fixture
 provider. If CI is green and the local stack misbehaves, the difference is
 configuration, not logic.

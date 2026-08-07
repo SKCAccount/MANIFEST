@@ -9,7 +9,15 @@ and is deliberately left until after you have entered real relationships.
 missing — run it whenever you are unsure.
 
 There is no Docker requirement. The test suite runs against an in-process
-Postgres; this guide is for the real instance you will actually use.
+Postgres; this guide is for a hosted instance you stand up yourself.
+
+> **⚠ The real MANIFEST already lives on the combined `seaking` project**
+> (deployed 2026-08-03, owner registered, its own migration ledger). This
+> guide is for a **fresh project of your own** — a scratch project for the
+> demo people, or a from-zero rebuild. Against `seaking`, step 5 (`db push`)
+> and step 9 (fixtures) must **never** run: migrations `0023+` go over a
+> direct connection and into `manifest.schema_migrations` by hand, and
+> invented people never touch real data. See [CLAUDE.md](CLAUDE.md).
 
 ---
 
@@ -280,5 +288,5 @@ owner registration and fixture state, and prints the next action for each.
 | A synced day looks wrong | The summary comes from the subject line and Gmail's ~200-character snippet — the body is never fetched. Use "Open in Gmail" on the timeline entry. |
 
 Before reporting a bug in the app, `npm run ci` confirms the schema and logic
-are sound locally (324 tests, migrations applied to an empty database). If CI is
+are sound locally (325 tests, migrations applied to an empty database). If CI is
 green and the deployed instance misbehaves, the difference is configuration.
