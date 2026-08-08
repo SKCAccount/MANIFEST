@@ -6,12 +6,14 @@ import {
   Checkbox,
   OrganizationCombobox,
   PersonCombobox,
+  PhoneField,
   SelectField,
   TaxonomyPicker,
   TextArea,
   TextField,
 } from './form-controls';
 import { TIER_VALUES, WATCH_PRIORITY_VALUES } from '@/lib/db/enums';
+import { US_STATES, normalizeCountryName, normalizeUsState } from '@/lib/geo-data';
 import type { ActionResult } from '@/lib/validation';
 
 export type TaxonomyOption = { value: string; label: string };
@@ -20,6 +22,8 @@ export type PersonFormLookups = {
   organizations: Array<{ id: string; name: string }>;
   people: Array<{ id: string; full_name: string }>;
   sources: Array<{ id: string; display_name: string }>;
+  /** United States first, then alphabetical. Stored value is the display name. */
+  countries: Array<{ name: string; iso: string; code: string }>;
   functions: TaxonomyOption[];
   specialties: TaxonomyOption[];
   relationships: TaxonomyOption[];
@@ -44,10 +48,12 @@ export type PersonDefaults = {
   met_at_source_id?: string | null;
   met_on?: string | null;
   introduced_by_person_id?: string | null;
+  introduced_by_external?: string | null;
   email_work?: string | null;
   email_personal?: string | null;
   phone_mobile?: string | null;
   phone_office?: string | null;
+  preferred_phone?: string | null;
   linkedin_url?: string | null;
   other_url?: string | null;
   do_not_contact?: boolean;
@@ -73,6 +79,14 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
 
   const isWatchlist = mode === 'create-watchlist';
   const isEdit = mode === 'edit';
+
+  // The Country selection drives two things: whether State is a dropdown of US
+  // states, and whether the phone fields show a country-code picker.
+  const [country, setCountry] = useState(
+    () => normalizeCountryName(defaults.country) ?? 'United States',
+  );
+  const [hasMobile, setHasMobile] = useState(Boolean(defaults.phone_mobile));
+  const [hasOffice, setHasOffice] = useState(Boolean(defaults.phone_office));
 
   function submit(formData: FormData) {
     setError(null);
@@ -187,8 +201,35 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
       <Section title="Where">
         <div className="grid gap-3 sm:grid-cols-3">
           <TextField name="city" label="City" defaultValue={defaults.city} />
-          <TextField name="state" label="State" defaultValue={defaults.state} />
-          <TextField name="country" label="Country" defaultValue={defaults.country ?? 'US'} />
+          {country === 'United States' ? (
+            <SelectField
+              name="state"
+              label="State"
+              includeBlank="—"
+              options={US_STATES.map((s) => ({ value: s, label: s }))}
+              defaultValue={normalizeUsState(defaults.state)}
+            />
+          ) : (
+            <TextField name="state" label="State / region" defaultValue={defaults.state} />
+          )}
+          <div>
+            <label className="label" htmlFor="person-country">
+              Country
+            </label>
+            <select
+              id="person-country"
+              name="country"
+              value={country}
+              onChange={(event) => setCountry(event.target.value)}
+              className="field"
+            >
+              {lookups.countries.map((c) => (
+                <option key={c.iso} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </Section>
 
@@ -200,8 +241,23 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
         <div className="grid gap-3 sm:grid-cols-2">
           <TextField name="email_work" label="Work email" type="email" defaultValue={defaults.email_work} error={fieldErrors.email_work} />
           <TextField name="email_personal" label="Personal email" type="email" defaultValue={defaults.email_personal} />
-          <TextField name="phone_mobile" label="Mobile" defaultValue={defaults.phone_mobile} hint="Stored as E.164." />
-          <TextField name="phone_office" label="Office" defaultValue={defaults.phone_office} />
+          <PhoneField
+            name="phone_mobile"
+            label="Mobile"
+            defaultValue={defaults.phone_mobile}
+            countryName={country}
+            countries={lookups.countries}
+            onHasValue={setHasMobile}
+            hint="Digits only — formatting is automatic."
+          />
+          <PhoneField
+            name="phone_office"
+            label="Office"
+            defaultValue={defaults.phone_office}
+            countryName={country}
+            countries={lookups.countries}
+            onHasValue={setHasOffice}
+          />
           <TextField
             name="linkedin_url"
             label="LinkedIn"
@@ -211,6 +267,33 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
           />
           <TextField name="other_url" label="Other link" defaultValue={defaults.other_url} />
         </div>
+
+        {hasMobile && hasOffice ? (
+          <fieldset className="mt-3">
+            <legend className="label">Preferred number</legend>
+            <div className="flex gap-4 text-sm">
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="preferred_phone"
+                  value="mobile"
+                  defaultChecked={defaults.preferred_phone === 'mobile'}
+                />
+                <span>Mobile</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="preferred_phone"
+                  value="office"
+                  defaultChecked={defaults.preferred_phone === 'office'}
+                />
+                <span>Office</span>
+              </label>
+            </div>
+            <p className="mt-0.5 text-xs text-ink-faint">Optional — which number to reach them on first.</p>
+          </fieldset>
+        ) : null}
       </Section>
 
       {/* ------------------------------------------------------------------ */}
@@ -221,6 +304,7 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
             label="Referred by"
             people={lookups.people}
             defaultId={defaults.introduced_by_person_id}
+            defaultExternal={defaults.introduced_by_external}
           />
 
           {!isWatchlist ? (

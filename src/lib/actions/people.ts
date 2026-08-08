@@ -112,6 +112,7 @@ export async function createActivePerson(formData: FormData): Promise<ActionResu
         email_personal: input.email_personal,
         phone_mobile: normalizePhone(input.phone_mobile),
         phone_office: normalizePhone(input.phone_office),
+        preferred_phone: input.preferred_phone,
         linkedin_url: input.linkedin_url,
         other_url: input.other_url,
         do_not_contact: input.do_not_contact,
@@ -178,6 +179,10 @@ export async function createWatchlistEntry(formData: FormData): Promise<ActionRe
         email_personal: input.email_personal,
         phone_mobile: normalizePhone(input.phone_mobile),
         phone_office: normalizePhone(input.phone_office),
+        // Included only when set: harmless before migration 0023 is applied,
+        // and a preference is sticky rather than cleared (it stops mattering
+        // when one number is removed, which the display already handles).
+        ...(input.preferred_phone ? { preferred_phone: input.preferred_phone } : {}),
         linkedin_url: input.linkedin_url,
         other_url: input.other_url,
         summary: input.summary,
@@ -239,6 +244,8 @@ export async function updatePerson(formData: FormData): Promise<ActionResult<{ i
         email_personal: input.email_personal,
         phone_mobile: normalizePhone(input.phone_mobile),
         phone_office: normalizePhone(input.phone_office),
+        // Only when set — see the note in createWatchlistEntry.
+        ...(input.preferred_phone ? { preferred_phone: input.preferred_phone } : {}),
         linkedin_url: input.linkedin_url,
         other_url: input.other_url,
         do_not_contact: input.do_not_contact,

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { SelectField, TextArea, TextField } from './form-controls';
 import { saveSource } from '@/lib/actions/records';
+import { US_STATES, normalizeUsState } from '@/lib/geo-data';
 
 export type SourceKindOption = { value: string; label: string; isEvent: boolean };
 
@@ -124,7 +125,13 @@ export function SourceForm({
 
       <div className="grid gap-3 sm:grid-cols-3">
         <TextField name="city" label="City" defaultValue={defaults.city} />
-        <TextField name="state" label="State" defaultValue={defaults.state} />
+        <SelectField
+          name="state"
+          label="State"
+          includeBlank="—"
+          options={US_STATES.map((s) => ({ value: s, label: s }))}
+          defaultValue={normalizeUsState(defaults.state)}
+        />
         <TextField name="url" label="URL" defaultValue={defaults.url} />
       </div>
 

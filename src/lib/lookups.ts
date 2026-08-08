@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { getOrganizations, getSources, getTaxonomy } from './queries';
+import { getCountryOptions } from './geo';
 import { supabase } from './auth';
 import type { PersonFormLookups } from '@/components/person-form';
 
@@ -23,6 +24,7 @@ export async function getPersonFormLookups(): Promise<PersonFormLookups> {
     organizations,
     people: people.data ?? [],
     sources: sources.map((s) => ({ id: s.source_id, display_name: s.display_name })),
+    countries: getCountryOptions(),
     functions,
     specialties,
     relationships,

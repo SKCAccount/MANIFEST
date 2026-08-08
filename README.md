@@ -21,7 +21,7 @@ Phase 1 is a shippable product on its own: fully usable by hand, with zero integ
 
 | | |
 |---|---|
-| Migrations | 22, applying clean from empty |
+| Migrations | 23, applying clean from empty |
 | Tables | 19, plus `app_owners` for RLS |
 | Views | 21 |
 | Functions | 33 — 23 callable, 10 trigger |
@@ -79,7 +79,7 @@ npm run sync gmail      # or calendar
 
 ```
 supabase/
-  migrations/       0001–0022, numbered; immutable once applied anywhere real
+  migrations/       0001–0023, numbered; immutable once applied anywhere real
   config.toml       local stack; [api] schemas exposes `manifest`
   seed.sql          fixtures — development and test only
 src/

@@ -77,7 +77,8 @@ ten-second hallway test — "who is overdue and what do I say."
 
 **Built, tested, deployed — never yet used.**
 
-- Phases 0–3 complete: schema (22 migrations), the hand rolodex, Gmail and
+- Phases 0–3 complete: schema (23 migrations — `0023` awaits its one-paste
+  application on seaking, backlog 1a), the hand rolodex, Gmail and
   Calendar sync, event economics. 14 screens plus login and offline. **325
   tests pass** (`npm run ci`, run 2026-08-07 — needs no database, no Docker).
 - Live on the combined **seaking** Supabase project (`oznvdznekexdgblmxwqr`)

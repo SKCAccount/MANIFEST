@@ -230,8 +230,16 @@ export default async function PersonPage({ params }: Props) {
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <Contact label="Work email" value={person.email_work} href={person.email_work ? `mailto:${person.email_work}` : null} />
           <Contact label="Personal email" value={person.email_personal} href={person.email_personal ? `mailto:${person.email_personal}` : null} />
-          <Contact label="Mobile" value={formatPhone(person.phone_mobile)} href={telHref(person.phone_mobile)} />
-          <Contact label="Office" value={formatPhone(person.phone_office)} href={telHref(person.phone_office)} />
+          <Contact
+            label={person.preferred_phone === 'mobile' ? 'Mobile — preferred' : 'Mobile'}
+            value={formatPhone(person.phone_mobile)}
+            href={telHref(person.phone_mobile)}
+          />
+          <Contact
+            label={person.preferred_phone === 'office' ? 'Office — preferred' : 'Office'}
+            value={formatPhone(person.phone_office)}
+            href={telHref(person.phone_office)}
+          />
           <Contact label="LinkedIn" value={person.linkedin_url} href={person.linkedin_url} />
           <Contact label="Other" value={person.other_url} href={person.other_url} />
         </dl>

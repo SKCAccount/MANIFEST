@@ -75,6 +75,8 @@ export type PeopleRow = {
   email_personal: string | null;
   phone_mobile: string | null;
   phone_office: string | null;
+  /** Which number to dial first. Null: no preference, or only one number. */
+  preferred_phone: 'mobile' | 'office' | null;
   linkedin_url: string | null;
   /** Generated dedupe key. */
   linkedin_key: string | null;

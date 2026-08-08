@@ -14,6 +14,17 @@ old Phase 4 (consent-gated mailing export) is **void**, not pending.
    *Done:* the queue renders signed-in; `last_sign_in_at` on the auth user
    advances past 2026-06-20.
 
+1a. **Apply migration 0023 on seaking — Derek, one paste.** The
+   preferred-number column (2026-08-07 form nits). Paste the full contents of
+   `supabase/migrations/0023_preferred_phone.sql` into the dashboard SQL
+   editor (another browser if project pages render blank in Chrome), then
+   record it: `insert into manifest.schema_migrations (version) values
+   ('0023');` — if that insert errors, check the ledger's columns with
+   `select * from manifest.schema_migrations limit 3;` and match them.
+   Until applied, everything works except the Preferred choice isn't saved.
+   *Done:* saving a person with a preference shows "— preferred" on their
+   detail page.
+
 2. **Enter the thirty most important relationships** — desktop, localhost,
    against seaking (decided 2026-08-07). Two paths on purpose: *Add a
    relationship* for someone already spoken to (needs the conversation that

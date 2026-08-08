@@ -139,6 +139,10 @@ const descriptorFields = {
   email_personal: nullableEmail,
   phone_mobile: nullableText,
   phone_office: nullableText,
+  /** 'mobile' | 'office'. Meaningful only when both numbers exist; kept (harmlessly) otherwise. */
+  preferred_phone: z
+    .union([z.string(), z.null(), z.undefined()])
+    .transform((v) => (v === 'mobile' || v === 'office' ? v : null)),
   linkedin_url: nullableLinkedIn,
   other_url: nullableUrl,
   introduced_by_person_id: nullableUuid,
