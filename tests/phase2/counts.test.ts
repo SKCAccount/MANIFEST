@@ -30,9 +30,9 @@ async function count(sql: string): Promise<number> {
 }
 
 describe('the README status table', () => {
-  it('says 23 migrations', async () => {
+  it('says 24 migrations', async () => {
     const files = (await readdir(migrationsDir)).filter((name) => name.endsWith('.sql'));
-    expect(files).toHaveLength(23);
+    expect(files).toHaveLength(24);
   });
 
   it('says 19 tables, plus app_owners for RLS', async () => {

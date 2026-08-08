@@ -77,13 +77,14 @@ ten-second hallway test — "who is overdue and what do I say."
 
 **Built, tested, deployed — never yet used.**
 
-- Phases 0–3 complete: schema (23 migrations — `0023` awaits its one-paste
-  application on seaking, backlog 1a), the hand rolodex, Gmail and
+- Phases 0–3 complete: schema (24 migrations — `0023`–`0024` await their
+  one-paste application on seaking, backlog 1a), the hand rolodex, Gmail and
   Calendar sync, event economics. 14 screens plus login and offline. **325
   tests pass** (`npm run ci`, run 2026-08-07 — needs no database, no Docker).
 - Live on the combined **seaking** Supabase project (`oznvdznekexdgblmxwqr`)
-  since 2026-08-03: `manifest` schema exposed, owner registered, 96 taxonomy
-  values seeded, zero people. `npm run doctor` reads **Ready**.
+  since 2026-08-03: `manifest` schema exposed, owner registered, taxonomies
+  seeded (110 values once `0024` lands), zero people. `npm run doctor` reads
+  **Ready**.
 - **Password sign-in has never succeeded on seaking.** `last_sign_in_at` on
   the sole auth user is 2026-06-20 — the email-confirm moment (re-verified
   2026-08-07 via the admin API). Derek has never gotten past the deployed

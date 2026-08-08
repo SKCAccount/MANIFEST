@@ -114,7 +114,7 @@ insert into people (
  'linkedin.com/in/ninaokafor', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000008', 'Grant', 'Whitfield', 'Principal', '22222222-0000-4000-8000-000000000008',
- '{Broker}', '{Factoring and ABL}', '{Deal Source,Referral Partner}',
+ '{Broker}', '{Invoice Factoring}', '{Deal Source,Referral Partner}',
  'Philadelphia', 'PA', 'US', 'active', now() - interval '400 days',
  '33333333-0000-4000-8000-000000000001', (current_date - 400), 'B', 'grant@whitfieldco.com', '2155550188',
  'linkedin.com/in/grantwhitfield', 'Sourced the Bluepoch receivable.', '{}'),
@@ -127,7 +127,7 @@ insert into people (
  'linkedin.com/in/hollistran', null, '{}'),
 
 ('11111111-0000-4000-8000-000000000010', 'Sasha', 'Nolan', 'SVP, Trade Finance', '22222222-0000-4000-8000-000000000010',
- '{Commercial Banker}', '{Factoring and ABL}', '{Referral Partner}',
+ '{Commercial Banker}', '{ABL}', '{Referral Partner}',
  'New York', 'NY', 'US', 'active', now() - interval '100 days',
  '33333333-0000-4000-8000-000000000002', (current_date - 100), 'B', 'snolan@meridiantrade.com', '2125550133',
  'linkedin.com/in/sashanolan', null, '{}'),

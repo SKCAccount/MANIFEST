@@ -8,9 +8,11 @@ import {
   PersonCombobox,
   PhoneField,
   SelectField,
+  SpecialtyPicker,
   TaxonomyPicker,
   TextArea,
   TextField,
+  type SpecialtyOption,
 } from './form-controls';
 import { TIER_VALUES, WATCH_PRIORITY_VALUES } from '@/lib/db/enums';
 import { US_STATES, normalizeCountryName, normalizeUsState } from '@/lib/geo-data';
@@ -25,7 +27,7 @@ export type PersonFormLookups = {
   /** United States first, then alphabetical. Stored value is the display name. */
   countries: Array<{ name: string; iso: string; code: string }>;
   functions: TaxonomyOption[];
-  specialties: TaxonomyOption[];
+  specialties: SpecialtyOption[];
   relationships: TaxonomyOption[];
   watchlistSources: TaxonomyOption[];
 };
@@ -87,6 +89,11 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
   );
   const [hasMobile, setHasMobile] = useState(Boolean(defaults.phone_mobile));
   const [hasOffice, setHasOffice] = useState(Boolean(defaults.phone_office));
+
+  // The product-coverage list is led by what they do for a living.
+  const [selectedFunctions, setSelectedFunctions] = useState<string[]>(
+    defaults.professional_function ?? [],
+  );
 
   function submit(formData: FormData) {
     setError(null);
@@ -168,7 +175,7 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
       {/* ------------------------------------------------------------------ */}
       <Section
         title="Classification"
-        hint="What they do, what they know, and what they are to you are three different questions."
+        hint="What they do, which industries and products they cover, and what they are to you are different questions."
       >
         <div className="space-y-4">
           <TaxonomyPicker
@@ -177,13 +184,12 @@ export function PersonForm({ mode, lookups, defaults = {}, action }: Props) {
             hint="What they do for a living. Usually one."
             options={lookups.functions}
             selected={defaults.professional_function}
+            onSelectionChange={setSelectedFunctions}
           />
-          <TaxonomyPicker
-            name="specialties"
-            label="Specialties"
-            hint="What they actually know. This is what answers “do you know a good CPG accountant”."
+          <SpecialtyPicker
             options={lookups.specialties}
             selected={defaults.specialties}
+            selectedFunctions={selectedFunctions}
           />
           {!isWatchlist ? (
             <TaxonomyPicker

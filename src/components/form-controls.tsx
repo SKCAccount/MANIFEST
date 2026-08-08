@@ -210,14 +210,25 @@ export function TaxonomyPicker({
   hint,
   options,
   selected = [],
+  onSelectionChange,
 }: {
   name: string;
   label: string;
   hint?: string;
   options: Array<{ value: string; label: string }>;
   selected?: string[];
+  /** Reports the full selection on every change — the specialties picker filters on it. */
+  onSelectionChange?: (values: string[]) => void;
 }) {
-  const chosen = new Set(selected);
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set(selected));
+
+  function toggle(value: string, checked: boolean) {
+    const next = new Set(chosen);
+    if (checked) next.add(value);
+    else next.delete(value);
+    setChosen(next);
+    onSelectionChange?.([...next]);
+  }
 
   return (
     <fieldset>
@@ -235,7 +246,8 @@ export function TaxonomyPicker({
               type="checkbox"
               name={name}
               value={option.value}
-              defaultChecked={chosen.has(option.value)}
+              checked={chosen.has(option.value)}
+              onChange={(event) => toggle(option.value, event.target.checked)}
               className="sr-only"
             />
             {option.label}
@@ -243,6 +255,117 @@ export function TaxonomyPicker({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+export type SpecialtyOption = {
+  value: string;
+  label: string;
+  kind: 'industry' | 'product';
+  /** Functions this product is relevant to. Empty means relevant to everyone. */
+  functions: string[];
+};
+
+/**
+ * The split specialties field: industry coverage and product coverage are two
+ * different questions asked of one underlying list — both submit as
+ * `specialties`, because the industry/product distinction lives in the
+ * taxonomy (meta.kind, migration 0024), not the schema.
+ *
+ * Product options are led by the selected professional functions; the rest sit
+ * behind "Show all" rather than disappearing, because an incomplete relevance
+ * map must never make a value unpickable. A checked value is always visible,
+ * whatever the filter says.
+ */
+export function SpecialtyPicker({
+  options,
+  selected = [],
+  selectedFunctions,
+}: {
+  options: SpecialtyOption[];
+  selected?: string[];
+  selectedFunctions: string[];
+}) {
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set(selected));
+  const [showAll, setShowAll] = useState(false);
+
+  const industries = [...options.filter((o) => o.kind === 'industry')].sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
+  const products = [...options.filter((o) => o.kind === 'product')].sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
+
+  const fns = new Set(selectedFunctions);
+  const isRelevant = (o: SpecialtyOption) => o.functions.length === 0 || o.functions.some((f) => fns.has(f));
+  const filtering = selectedFunctions.length > 0 && !showAll;
+  const visibleProducts = filtering ? products.filter((o) => isRelevant(o) || chosen.has(o.value)) : products;
+  const hiddenCount = products.length - visibleProducts.length;
+
+  function toggle(value: string, checked: boolean) {
+    const next = new Set(chosen);
+    if (checked) next.add(value);
+    else next.delete(value);
+    setChosen(next);
+  }
+
+  const chip = (option: SpecialtyOption) => (
+    <label
+      key={option.value}
+      className="cursor-pointer rounded-full border border-line px-2.5 py-1 text-xs
+                 transition-colors has-checked:border-accent has-checked:bg-accent-soft
+                 has-checked:font-medium has-checked:text-accent"
+    >
+      <input
+        type="checkbox"
+        name="specialties"
+        value={option.value}
+        checked={chosen.has(option.value)}
+        onChange={(event) => toggle(option.value, event.target.checked)}
+        className="sr-only"
+      />
+      {option.label}
+    </label>
+  );
+
+  return (
+    <div className="space-y-4">
+      <fieldset>
+        <legend className="label">Industry coverage</legend>
+        <p className="mb-1.5 text-xs text-ink-faint">Which industries they cover — the “do you know someone in CPG” dimension.</p>
+        <div className="flex flex-wrap gap-1.5">{industries.map(chip)}</div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="label">Product coverage</legend>
+        <p className="mb-1.5 text-xs text-ink-faint">
+          {selectedFunctions.length === 0
+            ? 'What they actually do — pick a professional function above and this list shortens to what fits.'
+            : 'Led by their professional function. “Show all” has the rest.'}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {visibleProducts.map(chip)}
+          {hiddenCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="cursor-pointer rounded-full border border-dashed border-line px-2.5 py-1 text-xs text-ink-faint"
+            >
+              Show all (+{hiddenCount})
+            </button>
+          ) : null}
+          {showAll && selectedFunctions.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowAll(false)}
+              className="cursor-pointer rounded-full border border-dashed border-line px-2.5 py-1 text-xs text-ink-faint"
+            >
+              Show fewer
+            </button>
+          ) : null}
+        </div>
+      </fieldset>
+    </div>
   );
 }
 

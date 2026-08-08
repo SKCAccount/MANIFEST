@@ -319,6 +319,39 @@ export async function getTaxonomy(domain: string): Promise<Array<{ value: string
   return (data ?? []).map((r) => ({ value: r.value, label: r.label }));
 }
 
+/**
+ * Specialties with their taxonomy tagging (migration 0024): industry coverage
+ * versus product coverage, and — for products — which professional functions
+ * they are relevant to. The split lives in the taxonomy, not the schema:
+ * `people.specialties` stays one array, so every view and search is unchanged.
+ *
+ * A value with no tagging (added later without meta) is treated as a product
+ * relevant to every function, so it is always visible in the form rather than
+ * silently unpickable.
+ */
+export async function getSpecialtyOptions(): Promise<
+  Array<{ value: string; label: string; kind: 'industry' | 'product'; functions: string[] }>
+> {
+  const db = await supabase();
+  const { data, error } = await db
+    .from('taxonomies')
+    .select('value, label, meta')
+    .eq('domain', 'specialty')
+    .eq('is_active', true)
+    .order('label');
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => {
+    const meta = (r.meta ?? {}) as { kind?: string; functions?: unknown };
+    return {
+      value: r.value,
+      label: r.label,
+      kind: meta.kind === 'industry' ? ('industry' as const) : ('product' as const),
+      functions: Array.isArray(meta.functions) ? meta.functions.filter((f): f is string => typeof f === 'string') : [],
+    };
+  });
+}
+
 export async function getSourceKinds(): Promise<Array<{ value: string; label: string; isEvent: boolean }>> {
   const db = await supabase();
   const { data, error } = await db
