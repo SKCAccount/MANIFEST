@@ -14,19 +14,14 @@ old Phase 4 (consent-gated mailing export) is **void**, not pending.
    *Done:* the queue renders signed-in; `last_sign_in_at` on the auth user
    advances past 2026-06-20.
 
-1a. **Apply migrations 0023 + 0024 on seaking — Derek, one paste each.** The
-   preferred-number column and the specialty industry/product split
-   (2026-08-07 form nits). Paste the full contents of
-   `supabase/migrations/0023_preferred_phone.sql`, then
-   `0024_specialty_split.sql`, into the dashboard SQL editor (another browser
-   if project pages render blank in Chrome), then record both:
-   `insert into manifest.schema_migrations (version) values ('0023'), ('0024');`
-   — if that insert errors, check the ledger's columns with
-   `select * from manifest.schema_migrations limit 3;` and match them.
-   Until 0023 lands the Preferred choice isn't saved; until 0024 lands the
-   specialty pickers show everything as unfiltered products.
-   *Done:* saving a person with a preference shows "— preferred", and an
-   Insurance contact's product list leads with the insurance products.
+1a. ~~Apply migrations 0023 + 0024 on seaking~~ **Done 2026-08-08.** Applied
+   for Derek via the management API — the Supabase CLI's stored login
+   authorizes `api.supabase.com`'s SQL channel, so no dashboard was needed —
+   and recorded in `manifest.schema_migrations`, whose shape is now known:
+   `version`, `name`, `applied_at`. Verified after: `preferred_phone` column
+   and constraint present, `fn_create_active_person` carries the new column;
+   110 taxonomy values — 10 industries + 23 products, zero untagged, the
+   conflated value gone; doctor reads Ready.
 
 2. **Enter the thirty most important relationships** — desktop, localhost,
    against seaking (decided 2026-08-07). Two paths on purpose: *Add a

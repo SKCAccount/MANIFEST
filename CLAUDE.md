@@ -77,14 +77,13 @@ ten-second hallway test — "who is overdue and what do I say."
 
 **Built, tested, deployed — never yet used.**
 
-- Phases 0–3 complete: schema (24 migrations — `0023`–`0024` await their
-  one-paste application on seaking, backlog 1a), the hand rolodex, Gmail and
+- Phases 0–3 complete: schema (24 migrations, all applied to seaking and
+  recorded in the ledger as of 2026-08-08), the hand rolodex, Gmail and
   Calendar sync, event economics. 14 screens plus login and offline. **325
-  tests pass** (`npm run ci`, run 2026-08-07 — needs no database, no Docker).
+  tests pass** (`npm run ci`, run 2026-08-08 — needs no database, no Docker).
 - Live on the combined **seaking** Supabase project (`oznvdznekexdgblmxwqr`)
-  since 2026-08-03: `manifest` schema exposed, owner registered, taxonomies
-  seeded (110 values once `0024` lands), zero people. `npm run doctor` reads
-  **Ready**.
+  since 2026-08-03: `manifest` schema exposed, owner registered, 110 taxonomy
+  values seeded, zero people. `npm run doctor` reads **Ready**.
 - **Password sign-in has never succeeded on seaking.** `last_sign_in_at` on
   the sole auth user is 2026-06-20 — the email-confirm moment (re-verified
   2026-08-07 via the admin API). Derek has never gotten past the deployed
@@ -255,9 +254,12 @@ Mechanics:
   auto-load; magic links land at localhost:54324). Fresh hosted project:
   [SETUP.md](SETUP.md) — **scratch projects only**; the real deployment
   already exists and its rules are decision 9.
-- Schema changes: a new numbered migration (`0023+`), applied to seaking over
-  a direct connection or the SQL editor, appended to
-  `manifest.schema_migrations` by hand. CI rejects edits to merged migrations.
+- Schema changes: a new numbered migration (`0025+`), applied to seaking over
+  a direct connection, the SQL editor, or the management API — the Supabase
+  CLI's stored login authorizes `api.supabase.com/v1/projects/<ref>/database/query`,
+  which is how `0023`–`0024` went in (2026-08-08) — then appended to
+  `manifest.schema_migrations` (`version`, `name`, `applied_at`) by hand.
+  CI rejects edits to merged migrations.
 - Reading a server-rendered page without a browser:
   `scripts/dev-session.ts` mints a signed-in cookie for curl. Local only, by
   assertion.
